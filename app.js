@@ -1,26 +1,45 @@
 const canvas = document.getElementById("canvas");
-const notes = document.getElementById("notes");
+const insights = document.getElementById("insights");
+const insightsCanvas = document.getElementById("insights-canvas");
 const template = document.getElementById("widget-template");
+const targetArea = document.getElementById("target-area");
+const toggleInsights = document.getElementById("toggle-insights");
+const uxPage = document.querySelector(".ux-page");
 
 let z = 5;
 let counter = 1;
 
-document.querySelectorAll(".palette button[data-widget]").forEach((btn) => {
+document.querySelectorAll(".controls button[data-widget]").forEach((btn) => {
   btn.addEventListener("click", () => addWidget(btn.dataset.widget));
 });
 
 document.getElementById("clear-canvas").addEventListener("click", () => {
   canvas.innerHTML = "";
-  notes.innerHTML = "";
+  insightsCanvas.innerHTML = "";
   counter = 1;
 });
 
+toggleInsights.addEventListener("click", () => {
+  const nowHidden = !insights.classList.contains("hidden");
+  insights.classList.toggle("hidden", nowHidden);
+  uxPage.classList.toggle("insights-hidden", nowHidden);
+  toggleInsights.textContent = nowHidden ? "Insights: Off" : "Insights: On";
+  toggleInsights.setAttribute("aria-pressed", String(!nowHidden));
+
+  if (nowHidden && targetArea.value === "insights") {
+    targetArea.value = "canvas";
+  }
+});
+
 function addWidget(type) {
+  const destination = getDestination();
+  if (!destination) return;
+
   const widget = template.content.firstElementChild.cloneNode(true);
   widget.dataset.type = type;
-  widget.style.left = `${40 + counter * 14}px`;
-  widget.style.top = `${40 + counter * 14}px`;
-  widget.style.width = type === "kpi" ? "220px" : "320px";
+  widget.style.left = `${16 + (counter % 8) * 12}px`;
+  widget.style.top = `${16 + (counter % 8) * 12}px`;
+  widget.style.width = type === "kpi" ? "220px" : "300px";
   widget.style.height = type === "kpi" ? "160px" : "220px";
   widget.style.zIndex = ++z;
 
@@ -68,25 +87,26 @@ function addWidget(type) {
 
   widget.querySelector(".remove").addEventListener("click", () => {
     widget.remove();
-    syncNotes();
   });
 
-  makeDraggable(widget);
+  makeDraggable(widget, destination);
   makeResizable(widget);
-  canvas.appendChild(widget);
-  syncNotes();
+  destination.appendChild(widget);
   counter += 1;
 }
 
-function syncNotes() {
-  const items = [...canvas.querySelectorAll(".widget")].map((node, idx) => {
-    const name = node.querySelector(".widget-header").textContent.trim();
-    return `<li>${idx + 1}. ${name}</li>`;
-  });
-  notes.innerHTML = items.join("") || "<li>No widgets added yet.</li>";
+function getDestination() {
+  if (targetArea.value === "insights") {
+    if (insights.classList.contains("hidden")) {
+      alert("Additional Insights is hidden. Turn it on to place widgets there.");
+      return null;
+    }
+    return insightsCanvas;
+  }
+  return canvas;
 }
 
-function makeDraggable(el) {
+function makeDraggable(el, container) {
   const header = el.querySelector(".widget-header");
   let startX = 0;
   let startY = 0;
@@ -108,8 +128,10 @@ function makeDraggable(el) {
     if (!dragging) return;
     const x = baseX + (e.clientX - startX);
     const y = baseY + (e.clientY - startY);
-    el.style.left = `${Math.max(0, x)}px`;
-    el.style.top = `${Math.max(0, y)}px`;
+    const maxX = Math.max(0, container.clientWidth - el.offsetWidth);
+    const maxY = Math.max(0, container.clientHeight - el.offsetHeight);
+    el.style.left = `${Math.min(maxX, Math.max(0, x))}px`;
+    el.style.top = `${Math.min(maxY, Math.max(0, y))}px`;
   });
 
   window.addEventListener("mouseup", () => {
@@ -149,5 +171,3 @@ function makeResizable(el) {
     document.body.style.userSelect = "";
   });
 }
-
-syncNotes();

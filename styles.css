@@ -2,7 +2,8 @@
   --ink: #1d1d1d;
   --paper: #f4f4f2;
   --panel: #fafaf9;
-  --accent: #2f6fca;
+  --builder-bg: #0f172a;
+  --builder-card: #f8fafc;
 }
 
 * {
@@ -14,6 +15,14 @@ body {
   font-family: "Comic Sans MS", "Segoe UI", system-ui, sans-serif;
   color: var(--ink);
   background: linear-gradient(180deg, #fbfbfa 0%, #f1f1ef 100%);
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 12px;
 }
 
 .sketch-border {
@@ -32,9 +41,13 @@ body {
   pointer-events: none;
 }
 
+.mockup-frame {
+  min-width: 0;
+}
+
 .top-nav,
 .context-bar {
-  margin: 8px;
+  margin: 0 0 8px;
   padding: 10px 12px;
   background: var(--panel);
   display: flex;
@@ -61,6 +74,8 @@ body {
 
 .filters {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -79,54 +94,68 @@ body {
   border-bottom: 1px dashed var(--ink);
   background: transparent;
   font-family: inherit;
-  width: 110px;
+  width: 90px;
 }
 
-.workspace {
-  margin: 8px;
-  min-height: 70vh;
-  display: grid;
-  grid-template-columns: 200px 1fr 240px;
-  gap: 8px;
-}
-
-.palette,
-.insights {
-  background: var(--panel);
-  padding: 12px;
-}
-
-.palette button {
-  display: block;
-  width: 100%;
-  margin-bottom: 8px;
-  padding: 8px;
+.toggle-btn {
   border: 2px solid var(--ink);
-  background: #fff;
+  background: #fff7d6;
+  padding: 5px 10px;
   font-family: inherit;
   cursor: pointer;
 }
 
-.palette .secondary {
-  background: #f8ecec;
-}
-
-.tip {
-  font-size: 0.8rem;
-}
-
-.canvas {
+.ux-page {
+  min-height: 73vh;
   background: var(--paper);
-  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 280px;
   overflow: hidden;
-  min-height: 70vh;
+}
+
+.canvas,
+.insights-canvas {
+  position: relative;
+  min-height: 100%;
   background-image: radial-gradient(circle at 0.5px 0.5px, rgba(0, 0, 0, 0.15) 0.5px, transparent 0);
   background-size: 14px 14px;
 }
 
+.canvas {
+  border-right: 2px solid rgba(29, 29, 29, 0.35);
+}
+
+.insights {
+  background: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.insights.hidden {
+  display: none;
+}
+
+.ux-page.insights-hidden {
+  grid-template-columns: 1fr;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.insights-canvas {
+  min-height: 260px;
+  border: 1px dashed rgba(0, 0, 0, 0.35);
+  background-color: rgba(244, 244, 242, 0.7);
+}
+
 .widget {
   position: absolute;
-  min-width: 180px;
+  min-width: 170px;
   min-height: 120px;
   background: rgba(255, 255, 255, 0.92);
   padding: 8px;
@@ -171,7 +200,7 @@ body {
 }
 
 .kpi .value {
-  font-size: 1.9rem;
+  font-size: 1.8rem;
   font-weight: 700;
 }
 
@@ -182,13 +211,13 @@ body {
 .grid-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .grid-table th,
 .grid-table td {
   border: 1px solid var(--ink);
-  padding: 4px;
+  padding: 3px;
   text-align: left;
 }
 
@@ -203,23 +232,83 @@ body {
 .chart .bar {
   flex: 1;
   border: 2px solid var(--ink);
-  background: linear-gradient(180deg, rgba(47, 111, 202, 0.2), rgba(47, 111, 202, 0.5));
+  background: linear-gradient(180deg, rgba(65, 96, 145, 0.2), rgba(65, 96, 145, 0.5));
 }
 
 .disclaimer {
-  margin: 10px;
+  margin-top: 10px;
   padding: 12px;
   width: fit-content;
   background: #fff;
 }
 
-@media (max-width: 1100px) {
-  .workspace {
+.builder-pane {
+  background: var(--builder-bg);
+  border-radius: 10px;
+  padding: 12px;
+  color: #e2e8f0;
+  display: flex;
+}
+
+.builder-card {
+  width: 100%;
+  background: var(--builder-card);
+  color: #0f172a;
+  border-radius: 8px;
+  padding: 12px;
+  border: 2px solid #1e293b;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.builder-card h3,
+.builder-card p {
+  margin: 0;
+}
+
+.target-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.builder-card select,
+.builder-card button {
+  font-family: inherit;
+}
+
+.controls {
+  display: grid;
+  gap: 8px;
+}
+
+.controls button,
+#clear-canvas {
+  border: 1px solid #0f172a;
+  border-radius: 6px;
+  padding: 8px;
+  cursor: pointer;
+  background: #fff;
+}
+
+#clear-canvas.secondary {
+  background: #fee2e2;
+}
+
+@media (max-width: 1180px) {
+  .app-shell {
     grid-template-columns: 1fr;
   }
 
-  .insights,
-  .palette {
+  .builder-pane {
     order: -1;
+  }
+
+  .ux-page {
+    grid-template-columns: 1fr;
+  }
+
+  .insights {
+    border-top: 2px solid rgba(29, 29, 29, 0.35);
   }
 }

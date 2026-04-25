@@ -7,46 +7,64 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <header class="top-nav sketch-border">
-      <div class="brand">A</div>
-      <div class="breadcrumbs" contenteditable="true">7.e | SAAS - KCG Recurring Revenue Forecast / 1. Planning / New & Renewals</div>
-      <div class="nav-actions">⎋  ⌕  ⦿</div>
-    </header>
+    <div class="app-shell">
+      <section class="mockup-frame">
+        <header class="top-nav sketch-border">
+          <div class="brand">A</div>
+          <div class="breadcrumbs" contenteditable="true">7.e | SAAS - KCG Recurring Revenue Forecast / 1. Planning / New & Renewals</div>
+          <div class="nav-actions">⎋ ⌕ ⦿</div>
+        </header>
 
-    <section class="context-bar sketch-border">
-      <div class="left-context" contenteditable="true">← 1. New Bookings & Revenue Recognition</div>
-      <div class="filters">
-        <label>Version <input value="Working Forecast" /></label>
-        <label>FY <input value="FY25" /></label>
-        <label>Business Unit <input value="1.1A" /></label>
-      </div>
-    </section>
+        <section class="context-bar sketch-border">
+          <div class="left-context" contenteditable="true">← 1. New Bookings & Revenue Recognition</div>
+          <div class="filters">
+            <label>Version <input value="Working Forecast" /></label>
+            <label>FY <input value="FY25" /></label>
+            <label>Business Unit <input value="1.1A" /></label>
+            <button id="toggle-insights" class="toggle-btn" type="button" aria-pressed="true">Insights: On</button>
+          </div>
+        </section>
 
-    <main class="workspace">
-      <aside class="palette sketch-border">
-        <h3>Palette</h3>
-        <button data-widget="kpi">+ KPI</button>
-        <button data-widget="grid">+ Grid</button>
-        <button data-widget="chart">+ Chart</button>
-        <button id="clear-canvas" class="secondary">Clear</button>
-        <p class="tip">Drag cards to reposition. Resize from lower-right corner.</p>
+        <section class="ux-page sketch-border">
+          <section id="canvas" class="canvas" aria-label="main ux mockup area"></section>
+
+          <aside id="insights" class="insights">
+            <h3 contenteditable="true">Additional Insights</h3>
+            <p class="hint">Drop or add planning widgets here when the pane is enabled.</p>
+            <section id="insights-canvas" class="insights-canvas" aria-label="additional insights area"></section>
+          </aside>
+        </section>
+
+        <footer class="disclaimer sketch-border">Concept sketch for alignment only - not final UI design.</footer>
+      </section>
+
+      <aside class="builder-pane">
+        <div class="builder-card">
+          <h3>Mockup Builder Controls</h3>
+          <p>These controls are for workshop facilitation only (not part of the UX page).</p>
+
+          <label class="target-label" for="target-area">Add widget to</label>
+          <select id="target-area">
+            <option value="canvas">Main Canvas</option>
+            <option value="insights">Additional Insights</option>
+          </select>
+
+          <div class="controls">
+            <button data-widget="kpi">+ KPI</button>
+            <button data-widget="grid">+ Grid</button>
+            <button data-widget="chart">+ Chart</button>
+          </div>
+
+          <button id="clear-canvas" class="secondary" type="button">Clear All Widgets</button>
+        </div>
       </aside>
-
-      <section id="canvas" class="canvas sketch-border" aria-label="mockup canvas"></section>
-
-      <aside class="insights sketch-border">
-        <h3 contenteditable="true">Additional Insights</h3>
-        <ul id="notes"></ul>
-      </aside>
-    </main>
-
-    <footer class="disclaimer sketch-border">Concept sketch for alignment only - not final UI design.</footer>
+    </div>
 
     <template id="widget-template">
       <article class="widget sketch-border" draggable="false">
         <div class="widget-header" contenteditable="true">Widget Title</div>
         <div class="widget-content"></div>
-        <button class="remove" title="Remove">×</button>
+        <button class="remove" title="Remove" type="button">×</button>
         <div class="resize-handle" aria-hidden="true"></div>
       </article>
     </template>
