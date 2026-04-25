@@ -9,6 +9,8 @@
   <body>
     <div class="app-shell">
       <section class="mockup-frame">
+        <footer class="disclaimer sketch-border">Concept sketch for alignment only - not final UI design.</footer>
+
         <header class="top-nav sketch-border">
           <div class="brand">A</div>
           <div class="breadcrumbs" contenteditable="true">7.e | SAAS - KCG Recurring Revenue Forecast / 1. Planning / New & Renewals</div>
@@ -26,16 +28,17 @@
 
           <aside id="insights" class="insights">
             <h3 contenteditable="true">Additional Insights</h3>
-            <p class="hint">Drop or add planning widgets here when the pane is enabled.</p>
             <section id="insights-canvas" class="insights-canvas" aria-label="additional insights area"></section>
           </aside>
         </section>
-
-        <footer class="disclaimer sketch-border">Concept sketch for alignment only - not final UI design.</footer>
       </section>
 
-      <aside class="builder-pane">
-        <div class="builder-card">
+      <aside id="builder-pane" class="builder-pane">
+        <button id="builder-toggle" class="builder-toggle" type="button" aria-expanded="true" aria-controls="builder-card">
+          Hide Controls
+        </button>
+
+        <div id="builder-card" class="builder-card">
           <h3>Mockup Builder Controls</h3>
           <p>These controls are for workshop facilitation only (not part of the UX page).</p>
 
@@ -79,6 +82,8 @@
       </div>
     </template>
 
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="app.js?v=20260425"></script>
   </body>
 </html>

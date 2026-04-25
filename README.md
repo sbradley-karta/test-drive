@@ -7,6 +7,8 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 - Uses a sketch-like visual style to keep discussion conceptual.
 - Provides a consistent Anaplan-inspired page shell (navigation, second header row, main canvas, and Additional Insights pane).
 - Uses a **separate Builder Controls pane** outside the UX page mockup so workshop controls are clearly distinguishable from in-product UI.
+- Uses a fixed **1600 × 900** UX mockup stage so local previews and exported PDFs stay consistent.
+- Provides collapsible, sticky Builder Controls that stay available while preserving the mockup frame.
 - Supports adding widgets to:
   - Main Canvas
   - Additional Insights pane (auto-stacked top-to-bottom)
@@ -20,8 +22,11 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
   - Text
 - Supports **show/hide Additional Insights** and lets you place widgets directly inside it.
 - Adds visible three-dot drag handles on widgets for clear move affordance.
-- Adds PDF export from Builder Controls (browser print-to-PDF workflow).
-- Snaps widget resize in Main Canvas to grid for cleaner alignment.
+- Snaps main canvas widgets to grid when added, moved, or resized.
+- Prevents overlapping widgets in the Main Canvas and preserves standard spacing from other widgets and canvas edges.
+- Supports editable grid headers and cells, plus inline row/column add/remove controls on grid widgets.
+- Adds direct 16:9 landscape PDF export from Builder Controls for the UX mockup frame.
+- Hides workshop-only controls from PDF export so the artifact stays clean.
 
 ## Fastest way to view in your browser
 
@@ -74,7 +79,7 @@ If you want this branch to be the production source in Vercel, set it in **Verce
 If you later want to run it locally:
 
 ```bash
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 
 Open:
@@ -89,4 +94,5 @@ http://localhost:8000
 2. Add context filters to the second header row only when target is set to `2nd Header Row`.
 3. Use context filter widgets on Main/Insights canvases to sketch local filter controls inside pages.
 4. Toggle Insights On/Off to mimic stakeholder UX behavior.
-5. Use this as alignment artifact, not final UI specification.
+5. Hover or focus a grid widget to reveal row/column editing controls.
+6. Use this as alignment artifact, not final UI specification.
