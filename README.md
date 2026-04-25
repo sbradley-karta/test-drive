@@ -1,0 +1,92 @@
+# Anaplan Mockup Generator Accelerator
+
+A lightweight, hand-drawn style mockup tool for client requirement workshops.
+
+## What it does
+
+- Uses a sketch-like visual style to keep discussion conceptual.
+- Provides a consistent Anaplan-inspired page shell (navigation, second header row, main canvas, and Additional Insights pane).
+- Uses a **separate Builder Controls pane** outside the UX page mockup so workshop controls are clearly distinguishable from in-product UI.
+- Supports adding widgets to:
+  - Main Canvas
+  - Additional Insights pane (auto-stacked top-to-bottom)
+  - 2nd Header Row (context filters)
+- Supports widget types:
+  - KPI
+  - Grid/table
+  - Chart
+  - Button
+  - Context Filter
+  - Text
+- Supports **show/hide Additional Insights** and lets you place widgets directly inside it.
+- Adds visible three-dot drag handles on widgets for clear move affordance.
+- Adds PDF export from Builder Controls (browser print-to-PDF workflow).
+- Snaps widget resize in Main Canvas to grid for cleaner alignment.
+
+## Fastest way to view in your browser
+
+### Option A: Vercel UI (no local setup)
+
+1. Push this repo to GitHub.
+2. Go to [vercel.com/new](https://vercel.com/new).
+3. Import your repo.
+4. Framework preset: **Other** (or leave Auto).
+5. Click **Deploy**.
+6. Open the generated `https://<project>.vercel.app` URL.
+
+This repo includes `vercel.json` so Vercel serves the static app correctly.
+
+### Option B: GitHub Pages (one-click via Actions)
+
+This repo includes a Pages deployment workflow at `.github/workflows/deploy-pages.yml`.
+
+#### First-time setup (once per repo)
+
+1. In GitHub, open **Settings → Pages**.
+2. Under **Build and deployment**, set **Source = GitHub Actions**.
+
+#### One-click deploy
+
+Use this direct link to trigger deployment from your branch:
+
+- [Run Deploy Pages workflow](../../actions/workflows/deploy-pages.yml)
+
+Then click **Run workflow**, pick your branch (for example `codex/create-anaplan-mockup-generator-tool`), and deploy.
+
+When complete, your site will be available at:
+
+```text
+https://<org-or-user>.github.io/<repo-name>/
+```
+
+## Branch alignment note
+
+Codex work is on branch:
+
+```text
+codex/create-anaplan-mockup-generator-tool
+```
+
+If you want this branch to be the production source in Vercel, set it in **Vercel → Project Settings → Git → Production Branch**.
+
+## Local preview (optional)
+
+If you later want to run it locally:
+
+```bash
+python -m http.server 8000
+```
+
+Open:
+
+```text
+http://localhost:8000
+```
+
+## Workshop usage tips
+
+1. Keep the Builder Controls pane for facilitator actions only.
+2. Add context filters to the second header row only when target is set to `2nd Header Row`.
+3. Use context filter widgets on Main/Insights canvases to sketch local filter controls inside pages.
+4. Toggle Insights On/Off to mimic stakeholder UX behavior.
+5. Use this as alignment artifact, not final UI specification.
