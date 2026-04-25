@@ -44,10 +44,19 @@ function exportUxToPdf() {
     return;
   }
 
+  const clearPrintMode = () => {
+    document.body.classList.remove("print-mode");
+    window.removeEventListener("afterprint", clearPrintMode);
+  };
+
   document.body.classList.add("print-mode");
+  window.addEventListener("afterprint", clearPrintMode);
+
   requestAnimationFrame(() => {
     window.print();
-    setTimeout(() => document.body.classList.remove("print-mode"), 250);
+
+    // Fallback for environments that never fire afterprint.
+    setTimeout(clearPrintMode, 1500);
   });
 }
 
