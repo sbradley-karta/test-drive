@@ -2,9 +2,11 @@ const canvas = document.getElementById("canvas");
 const insights = document.getElementById("insights");
 const insightsCanvas = document.getElementById("insights-canvas");
 const template = document.getElementById("widget-template");
+const headerFilterTemplate = document.getElementById("header-filter-template");
 const targetArea = document.getElementById("target-area");
 const toggleInsights = document.getElementById("toggle-insights");
 const uxPage = document.querySelector(".ux-page");
+const contextFilterRow = document.getElementById("context-filter-row");
 
 let z = 5;
 let counter = 1;
@@ -16,6 +18,7 @@ document.querySelectorAll(".controls button[data-widget]").forEach((btn) => {
 document.getElementById("clear-canvas").addEventListener("click", () => {
   canvas.innerHTML = "";
   insightsCanvas.innerHTML = "";
+  contextFilterRow.innerHTML = "";
   counter = 1;
 });
 
@@ -32,6 +35,15 @@ toggleInsights.addEventListener("click", () => {
 });
 
 function addWidget(type) {
+  if (targetArea.value === "header") {
+    if (type !== "context-filter") {
+      alert("The 2nd header row accepts context filter widgets only.");
+      return;
+    }
+    addHeaderFilter();
+    return;
+  }
+
   const destination = getDestination();
   if (!destination) return;
 
@@ -39,8 +51,8 @@ function addWidget(type) {
   widget.dataset.type = type;
   widget.style.left = `${16 + (counter % 8) * 12}px`;
   widget.style.top = `${16 + (counter % 8) * 12}px`;
-  widget.style.width = type === "kpi" ? "220px" : "300px";
-  widget.style.height = type === "kpi" ? "160px" : "220px";
+  widget.style.width = getDefaultWidth(type);
+  widget.style.height = getDefaultHeight(type);
   widget.style.zIndex = ++z;
 
   const title = widget.querySelector(".widget-header");
@@ -85,6 +97,25 @@ function addWidget(type) {
     `;
   }
 
+  if (type === "button") {
+    title.textContent = "Action Button";
+    content.innerHTML = `
+      <div class="button-widget-wrap">
+        <button class="mock-action-btn" type="button" contenteditable="true">Submit Forecast</button>
+      </div>
+    `;
+  }
+
+  if (type === "context-filter") {
+    title.textContent = "Context Filter";
+    content.innerHTML = `
+      <div class="context-filter-widget">
+        <span class="filter-label" contenteditable="true">Version</span>
+        <span class="filter-value" contenteditable="true">Working Forecast</span>
+      </div>
+    `;
+  }
+
   widget.querySelector(".remove").addEventListener("click", () => {
     widget.remove();
   });
@@ -93,6 +124,12 @@ function addWidget(type) {
   makeResizable(widget);
   destination.appendChild(widget);
   counter += 1;
+}
+
+function addHeaderFilter() {
+  const chip = headerFilterTemplate.content.firstElementChild.cloneNode(true);
+  chip.querySelector(".remove-filter").addEventListener("click", () => chip.remove());
+  contextFilterRow.appendChild(chip);
 }
 
 function getDestination() {
@@ -106,15 +143,29 @@ function getDestination() {
   return canvas;
 }
 
+function getDefaultWidth(type) {
+  if (type === "kpi") return "220px";
+  if (type === "button") return "220px";
+  if (type === "context-filter") return "250px";
+  return "300px";
+}
+
+function getDefaultHeight(type) {
+  if (type === "kpi") return "160px";
+  if (type === "button") return "140px";
+  if (type === "context-filter") return "140px";
+  return "220px";
+}
+
 function makeDraggable(el, container) {
-  const header = el.querySelector(".widget-header");
+  const handle = el.querySelector(".drag-handle");
   let startX = 0;
   let startY = 0;
   let baseX = 0;
   let baseY = 0;
   let dragging = false;
 
-  header.addEventListener("mousedown", (e) => {
+  handle.addEventListener("mousedown", (e) => {
     dragging = true;
     startX = e.clientX;
     startY = e.clientY;
@@ -122,6 +173,7 @@ function makeDraggable(el, container) {
     baseY = el.offsetTop;
     el.style.zIndex = ++z;
     document.body.style.userSelect = "none";
+    e.preventDefault();
   });
 
   window.addEventListener("mousemove", (e) => {
@@ -161,7 +213,7 @@ function makeResizable(el) {
   window.addEventListener("mousemove", (e) => {
     if (!resizing) return;
     const w = Math.max(160, startW + (e.clientX - startX));
-    const h = Math.max(120, startH + (e.clientY - startY));
+    const h = Math.max(110, startH + (e.clientY - startY));
     el.style.width = `${w}px`;
     el.style.height = `${h}px`;
   });

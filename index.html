@@ -17,12 +17,8 @@
 
         <section class="context-bar sketch-border">
           <div class="left-context" contenteditable="true">← 1. New Bookings & Revenue Recognition</div>
-          <div class="filters">
-            <label>Version <input value="Working Forecast" /></label>
-            <label>FY <input value="FY25" /></label>
-            <label>Business Unit <input value="1.1A" /></label>
-            <button id="toggle-insights" class="toggle-btn" type="button" aria-pressed="true">Insights: On</button>
-          </div>
+          <div id="context-filter-row" class="filters-row" aria-label="context filters row"></div>
+          <button id="toggle-insights" class="toggle-btn" type="button" aria-pressed="true">Insights: On</button>
         </section>
 
         <section class="ux-page sketch-border">
@@ -47,12 +43,15 @@
           <select id="target-area">
             <option value="canvas">Main Canvas</option>
             <option value="insights">Additional Insights</option>
+            <option value="header">2nd Header Row</option>
           </select>
 
           <div class="controls">
-            <button data-widget="kpi">+ KPI</button>
-            <button data-widget="grid">+ Grid</button>
-            <button data-widget="chart">+ Chart</button>
+            <button data-widget="kpi" type="button">+ KPI</button>
+            <button data-widget="grid" type="button">+ Grid</button>
+            <button data-widget="chart" type="button">+ Chart</button>
+            <button data-widget="button" type="button">+ Button</button>
+            <button data-widget="context-filter" type="button">+ Context Filter</button>
           </div>
 
           <button id="clear-canvas" class="secondary" type="button">Clear All Widgets</button>
@@ -62,11 +61,20 @@
 
     <template id="widget-template">
       <article class="widget sketch-border" draggable="false">
+        <div class="drag-handle" title="Drag widget" aria-label="Drag widget">⋮⋮</div>
         <div class="widget-header" contenteditable="true">Widget Title</div>
         <div class="widget-content"></div>
         <button class="remove" title="Remove" type="button">×</button>
         <div class="resize-handle" aria-hidden="true"></div>
       </article>
+    </template>
+
+    <template id="header-filter-template">
+      <div class="header-filter">
+        <span class="filter-label" contenteditable="true">Filter</span>
+        <span class="filter-value" contenteditable="true">Value</span>
+        <button class="remove-filter" type="button" aria-label="Remove filter">×</button>
+      </div>
     </template>
 
     <script src="app.js"></script>

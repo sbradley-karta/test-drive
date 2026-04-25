@@ -5,14 +5,20 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 ## What it does
 
 - Uses a sketch-like visual style to keep discussion conceptual.
-- Provides a consistent Anaplan-inspired page shell (navigation, context filters, right insights rail).
+- Provides a consistent Anaplan-inspired page shell (navigation, second header row, main canvas, and Additional Insights pane).
 - Uses a **separate Builder Controls pane** outside the UX page mockup so workshop controls are clearly distinguishable from in-product UI.
-- Allows adding core planning widgets:
-  - KPI cards
-  - Grid/table widgets
-  - Chart placeholders
-- Supports drag + resize interactions for rapid page framing.
-- Supports **show/hide Additional Insights** and lets you place widgets directly inside the Additional Insights pane.
+- Supports adding widgets to:
+  - Main Canvas
+  - Additional Insights pane
+  - 2nd Header Row (context filters)
+- Supports widget types:
+  - KPI
+  - Grid/table
+  - Chart
+  - Button
+  - Context Filter
+- Supports **show/hide Additional Insights** and lets you place widgets directly inside it.
+- Adds visible three-dot drag handles on widgets for clear move affordance.
 
 ## Fastest way to view in your browser
 
@@ -77,7 +83,7 @@ http://localhost:8000
 ## Workshop usage tips
 
 1. Keep the Builder Controls pane for facilitator actions only.
-2. Place KPI cards on the main canvas for top-line outcomes.
-3. Use the Additional Insights pane for supporting grids/charts/KPIs.
+2. Add context filters to the second header row only when target is set to `2nd Header Row`.
+3. Use context filter widgets on Main/Insights canvases to sketch local filter controls inside pages.
 4. Toggle Insights On/Off to mimic stakeholder UX behavior.
 5. Use this as alignment artifact, not final UI specification.
