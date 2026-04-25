@@ -24,11 +24,7 @@ document.getElementById("clear-canvas").addEventListener("click", () => {
   counter = 1;
 });
 
-exportPdfBtn.addEventListener("click", () => {
-  document.body.classList.add("print-mode");
-  window.print();
-  setTimeout(() => document.body.classList.remove("print-mode"), 250);
-});
+exportPdfBtn.addEventListener("click", exportUxToPdf);
 
 toggleInsights.addEventListener("click", () => {
   const nowHidden = !insights.classList.contains("hidden");
@@ -41,6 +37,19 @@ toggleInsights.addEventListener("click", () => {
     targetArea.value = "canvas";
   }
 });
+
+function exportUxToPdf() {
+  if (typeof window.print !== "function") {
+    alert("PDF export is not supported in this browser.");
+    return;
+  }
+
+  document.body.classList.add("print-mode");
+  requestAnimationFrame(() => {
+    window.print();
+    setTimeout(() => document.body.classList.remove("print-mode"), 250);
+  });
+}
 
 function addWidget(type) {
   if (targetArea.value === "header") {
@@ -106,12 +115,11 @@ function addWidget(type) {
   }
 
   if (type === "button") {
-    title.textContent = "Action Button";
+    title.remove();
     content.innerHTML = `
-      <div class="button-widget-wrap">
-        <button class="mock-action-btn" type="button">Submit Forecast</button>
-      </div>
+      <button class="mock-action-btn" type="button" contenteditable="true">Submit Forecast</button>
     `;
+    widget.classList.add("bare-widget", "button-widget");
   }
 
   if (type === "context-filter") {
@@ -125,28 +133,40 @@ function addWidget(type) {
   }
 
   if (type === "text") {
-    title.textContent = "Text";
+    title.remove();
     content.innerHTML = `
       <div class="text-widget" contenteditable="true">Section Header / Instructional Text</div>
     `;
+    widget.classList.add("bare-widget", "text-only-widget");
   }
 
   widget.querySelector(".remove").addEventListener("click", () => {
     widget.remove();
-    if (destination === insightsCanvas) {
-      stackInsightsWidgets();
-    }
   });
 
   destination.appendChild(widget);
 
-  if (destination === insightsCanvas) {
-    stackInsightsWidgets();
+  const isInsightsDestination = destination === insightsCanvas;
+  if (isInsightsDestination) {
+    prepareInsightsWidget(widget);
   }
 
-  makeDraggable(widget, destination);
-  makeResizable(widget, destination);
+  makeDraggable(widget, destination, isInsightsDestination);
+  makeResizable(widget, destination, isInsightsDestination);
   counter += 1;
+}
+
+function prepareInsightsWidget(widget) {
+  widget.classList.add("insights-widget");
+  widget.style.left = "0px";
+  widget.style.top = "0px";
+  widget.style.width = "100%";
+
+  const handle = widget.querySelector(".resize-handle");
+  handle.style.display = "none";
+
+  const header = widget.querySelector(".widget-header");
+  if (header) header.style.marginBottom = "6px";
 }
 
 function addHeaderFilter() {
@@ -168,33 +188,21 @@ function getDestination() {
 
 function getDefaultWidth(type) {
   if (type === "kpi") return "220px";
-  if (type === "button") return "220px";
+  if (type === "button") return "180px";
   if (type === "context-filter") return "250px";
-  if (type === "text") return "280px";
+  if (type === "text") return "360px";
   return "300px";
 }
 
 function getDefaultHeight(type) {
   if (type === "kpi") return "160px";
-  if (type === "button") return "140px";
+  if (type === "button") return "64px";
   if (type === "context-filter") return "140px";
-  if (type === "text") return "120px";
+  if (type === "text") return "64px";
   return "220px";
 }
 
-function stackInsightsWidgets() {
-  const widgets = [...insightsCanvas.querySelectorAll(".widget")];
-  let y = 8;
-  widgets.forEach((widget) => {
-    widget.style.left = "8px";
-    widget.style.width = `${Math.max(170, insightsCanvas.clientWidth - 16)}px`;
-    widget.style.top = `${y}px`;
-    y += widget.offsetHeight + 8;
-    widget.style.zIndex = ++z;
-  });
-}
-
-function makeDraggable(el, container) {
+function makeDraggable(el, container, isInsightsDestination) {
   const handle = el.querySelector(".drag-handle");
   let startX = 0;
   let startY = 0;
@@ -215,6 +223,11 @@ function makeDraggable(el, container) {
 
   window.addEventListener("mousemove", (e) => {
     if (!dragging) return;
+
+    if (isInsightsDestination) {
+      return;
+    }
+
     const x = baseX + (e.clientX - startX);
     const y = baseY + (e.clientY - startY);
     const maxX = Math.max(0, container.clientWidth - el.offsetWidth);
@@ -224,16 +237,17 @@ function makeDraggable(el, container) {
   });
 
   window.addEventListener("mouseup", () => {
-    if (dragging && container === insightsCanvas) {
-      stackInsightsWidgets();
-    }
     dragging = false;
     document.body.style.userSelect = "";
   });
 }
 
-function makeResizable(el, container) {
+function makeResizable(el, container, isInsightsDestination) {
   const handle = el.querySelector(".resize-handle");
+  if (isInsightsDestination) {
+    return;
+  }
+
   let startX = 0;
   let startY = 0;
   let startW = 0;
@@ -252,27 +266,30 @@ function makeResizable(el, container) {
 
   window.addEventListener("mousemove", (e) => {
     if (!resizing) return;
+
     let w = Math.max(160, startW + (e.clientX - startX));
-    let h = Math.max(110, startH + (e.clientY - startY));
+    let h = Math.max(64, startH + (e.clientY - startY));
 
     if (container === canvas) {
       w = snapToGrid(w, GRID_SIZE);
       h = snapToGrid(h, GRID_SIZE);
     }
 
+    const maxW = Math.max(160, container.clientWidth - el.offsetLeft);
+    const maxH = Math.max(64, container.clientHeight - el.offsetTop);
+    w = Math.min(w, maxW);
+    h = Math.min(h, maxH);
+
     el.style.width = `${w}px`;
     el.style.height = `${h}px`;
   });
 
   window.addEventListener("mouseup", () => {
-    if (resizing && container === insightsCanvas) {
-      stackInsightsWidgets();
-    }
     resizing = false;
     document.body.style.userSelect = "";
   });
 }
 
 function snapToGrid(value, size) {
-  return Math.round(value / size) * size;
+  return Math.max(size, Math.round(value / size) * size);
 }

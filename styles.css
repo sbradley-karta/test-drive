@@ -168,6 +168,11 @@ body {
   min-height: 0;
   border: 1px dashed rgba(0, 0, 0, 0.35);
   background-color: rgba(244, 244, 242, 0.7);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  padding: 8px;
 }
 
 .widget {
@@ -177,6 +182,13 @@ body {
   background: rgba(255, 255, 255, 0.92);
   padding: 8px 8px 8px 24px;
   cursor: default;
+}
+
+.widget.insights-widget {
+  position: relative;
+  left: auto !important;
+  top: auto !important;
+  width: 100% !important;
 }
 
 .drag-handle {
@@ -230,6 +242,29 @@ body {
   cursor: nwse-resize;
 }
 
+.widget.bare-widget {
+  border: none;
+  background: transparent;
+  padding: 0 26px 0 22px;
+  min-height: 36px;
+}
+
+.widget.bare-widget::after {
+  display: none;
+}
+
+.widget.bare-widget .widget-content {
+  height: 100%;
+}
+
+.widget.bare-widget .remove {
+  top: 0;
+}
+
+.widget.bare-widget .resize-handle {
+  display: none;
+}
+
 .kpi {
   display: grid;
   gap: 6px;
@@ -271,12 +306,6 @@ body {
   background: linear-gradient(180deg, rgba(65, 96, 145, 0.2), rgba(65, 96, 145, 0.5));
 }
 
-.button-widget-wrap {
-  display: grid;
-  place-items: center;
-  height: 100%;
-}
-
 .mock-action-btn {
   border: 2px solid var(--ink);
   background: #e5edff;
@@ -297,10 +326,11 @@ body {
 .text-widget {
   width: 100%;
   min-height: 100%;
-  padding: 8px;
-  border: 1px dashed rgba(0, 0, 0, 0.45);
+  padding: 2px 0;
+  border: none;
   font-size: 1.05rem;
   font-weight: 700;
+  background: transparent;
 }
 
 .disclaimer {
@@ -351,7 +381,8 @@ body {
 }
 
 .controls button,
-#clear-canvas {
+#clear-canvas,
+#export-pdf {
   border: 1px solid #0f172a;
   border-radius: 6px;
   padding: 8px;
@@ -395,7 +426,6 @@ body {
     min-height: 320px;
   }
 }
-
 
 @media print {
   body.print-mode {
