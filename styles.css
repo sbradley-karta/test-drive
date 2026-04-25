@@ -294,6 +294,15 @@ body {
   padding: 8px;
 }
 
+.text-widget {
+  width: 100%;
+  min-height: 100%;
+  padding: 8px;
+  border: 1px dashed rgba(0, 0, 0, 0.45);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
 .disclaimer {
   margin-top: 10px;
   padding: 12px;
@@ -384,5 +393,31 @@ body {
 
   .insights-canvas {
     min-height: 320px;
+  }
+}
+
+
+@media print {
+  body.print-mode {
+    background: #fff;
+  }
+
+  body.print-mode .builder-pane,
+  body.print-mode .disclaimer {
+    display: none !important;
+  }
+
+  body.print-mode .app-shell {
+    grid-template-columns: 1fr;
+    padding: 0;
+  }
+
+  body.print-mode .mockup-frame {
+    width: 100%;
+  }
+
+  body.print-mode .ux-page {
+    height: auto;
+    min-height: 720px;
   }
 }

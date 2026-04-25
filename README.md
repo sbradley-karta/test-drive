@@ -9,7 +9,7 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 - Uses a **separate Builder Controls pane** outside the UX page mockup so workshop controls are clearly distinguishable from in-product UI.
 - Supports adding widgets to:
   - Main Canvas
-  - Additional Insights pane
+  - Additional Insights pane (auto-stacked top-to-bottom)
   - 2nd Header Row (context filters)
 - Supports widget types:
   - KPI
@@ -17,8 +17,11 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
   - Chart
   - Button
   - Context Filter
+  - Text
 - Supports **show/hide Additional Insights** and lets you place widgets directly inside it.
 - Adds visible three-dot drag handles on widgets for clear move affordance.
+- Adds PDF export from Builder Controls (browser print-to-PDF workflow).
+- Snaps widget resize in Main Canvas to grid for cleaner alignment.
 
 ## Fastest way to view in your browser
 

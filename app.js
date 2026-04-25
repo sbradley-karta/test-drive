@@ -7,9 +7,11 @@ const targetArea = document.getElementById("target-area");
 const toggleInsights = document.getElementById("toggle-insights");
 const uxPage = document.querySelector(".ux-page");
 const contextFilterRow = document.getElementById("context-filter-row");
+const exportPdfBtn = document.getElementById("export-pdf");
 
 let z = 5;
 let counter = 1;
+const GRID_SIZE = 14;
 
 document.querySelectorAll(".controls button[data-widget]").forEach((btn) => {
   btn.addEventListener("click", () => addWidget(btn.dataset.widget));
@@ -20,6 +22,12 @@ document.getElementById("clear-canvas").addEventListener("click", () => {
   insightsCanvas.innerHTML = "";
   contextFilterRow.innerHTML = "";
   counter = 1;
+});
+
+exportPdfBtn.addEventListener("click", () => {
+  document.body.classList.add("print-mode");
+  window.print();
+  setTimeout(() => document.body.classList.remove("print-mode"), 250);
 });
 
 toggleInsights.addEventListener("click", () => {
@@ -101,7 +109,7 @@ function addWidget(type) {
     title.textContent = "Action Button";
     content.innerHTML = `
       <div class="button-widget-wrap">
-        <button class="mock-action-btn" type="button" contenteditable="true">Submit Forecast</button>
+        <button class="mock-action-btn" type="button">Submit Forecast</button>
       </div>
     `;
   }
@@ -116,13 +124,28 @@ function addWidget(type) {
     `;
   }
 
+  if (type === "text") {
+    title.textContent = "Text";
+    content.innerHTML = `
+      <div class="text-widget" contenteditable="true">Section Header / Instructional Text</div>
+    `;
+  }
+
   widget.querySelector(".remove").addEventListener("click", () => {
     widget.remove();
+    if (destination === insightsCanvas) {
+      stackInsightsWidgets();
+    }
   });
 
-  makeDraggable(widget, destination);
-  makeResizable(widget);
   destination.appendChild(widget);
+
+  if (destination === insightsCanvas) {
+    stackInsightsWidgets();
+  }
+
+  makeDraggable(widget, destination);
+  makeResizable(widget, destination);
   counter += 1;
 }
 
@@ -147,6 +170,7 @@ function getDefaultWidth(type) {
   if (type === "kpi") return "220px";
   if (type === "button") return "220px";
   if (type === "context-filter") return "250px";
+  if (type === "text") return "280px";
   return "300px";
 }
 
@@ -154,7 +178,20 @@ function getDefaultHeight(type) {
   if (type === "kpi") return "160px";
   if (type === "button") return "140px";
   if (type === "context-filter") return "140px";
+  if (type === "text") return "120px";
   return "220px";
+}
+
+function stackInsightsWidgets() {
+  const widgets = [...insightsCanvas.querySelectorAll(".widget")];
+  let y = 8;
+  widgets.forEach((widget) => {
+    widget.style.left = "8px";
+    widget.style.width = `${Math.max(170, insightsCanvas.clientWidth - 16)}px`;
+    widget.style.top = `${y}px`;
+    y += widget.offsetHeight + 8;
+    widget.style.zIndex = ++z;
+  });
 }
 
 function makeDraggable(el, container) {
@@ -187,12 +224,15 @@ function makeDraggable(el, container) {
   });
 
   window.addEventListener("mouseup", () => {
+    if (dragging && container === insightsCanvas) {
+      stackInsightsWidgets();
+    }
     dragging = false;
     document.body.style.userSelect = "";
   });
 }
 
-function makeResizable(el) {
+function makeResizable(el, container) {
   const handle = el.querySelector(".resize-handle");
   let startX = 0;
   let startY = 0;
@@ -212,14 +252,27 @@ function makeResizable(el) {
 
   window.addEventListener("mousemove", (e) => {
     if (!resizing) return;
-    const w = Math.max(160, startW + (e.clientX - startX));
-    const h = Math.max(110, startH + (e.clientY - startY));
+    let w = Math.max(160, startW + (e.clientX - startX));
+    let h = Math.max(110, startH + (e.clientY - startY));
+
+    if (container === canvas) {
+      w = snapToGrid(w, GRID_SIZE);
+      h = snapToGrid(h, GRID_SIZE);
+    }
+
     el.style.width = `${w}px`;
     el.style.height = `${h}px`;
   });
 
   window.addEventListener("mouseup", () => {
+    if (resizing && container === insightsCanvas) {
+      stackInsightsWidgets();
+    }
     resizing = false;
     document.body.style.userSelect = "";
   });
+}
+
+function snapToGrid(value, size) {
+  return Math.round(value / size) * size;
 }
