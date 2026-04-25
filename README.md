@@ -12,9 +12,7 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
   - Chart placeholders
 - Supports drag + resize interactions for rapid page framing.
 
-## Fastest way to view in your browser (Vercel)
-
-You can deploy this in ~2 minutes and open it from any browser.
+## Fastest way to view in your browser
 
 ### Option A: Vercel UI (no local setup)
 
@@ -25,13 +23,40 @@ You can deploy this in ~2 minutes and open it from any browser.
 5. Click **Deploy**.
 6. Open the generated `https://<project>.vercel.app` URL.
 
-This repo includes `vercel.json` so Vercel serves the static app correctly. 
+This repo includes `vercel.json` so Vercel serves the static app correctly.
 
-### Option B: One-click deploy button
+### Option B: GitHub Pages (one-click via Actions)
 
-After replacing `YOUR_GITHUB_REPO_URL` below, use this button:
+This repo includes a Pages deployment workflow at `.github/workflows/deploy-pages.yml`.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=YOUR_GITHUB_REPO_URL)
+#### First-time setup (once per repo)
+
+1. In GitHub, open **Settings → Pages**.
+2. Under **Build and deployment**, set **Source = GitHub Actions**.
+
+#### One-click deploy
+
+Use this direct link to trigger deployment from your branch:
+
+- [Run Deploy Pages workflow](../../actions/workflows/deploy-pages.yml)
+
+Then click **Run workflow**, pick your branch (for example `codex/create-anaplan-mockup-generator-tool`), and deploy.
+
+When complete, your site will be available at:
+
+```text
+https://<org-or-user>.github.io/<repo-name>/
+```
+
+## Branch alignment note
+
+Codex work is on branch:
+
+```text
+codex/create-anaplan-mockup-generator-tool
+```
+
+If you want this branch to be the production source in Vercel, set it in **Vercel → Project Settings → Git → Production Branch**.
 
 ## Local preview (optional)
 
