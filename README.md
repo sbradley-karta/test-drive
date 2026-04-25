@@ -12,11 +12,30 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
   - Chart placeholders
 - Supports drag + resize interactions for rapid page framing.
 
-## Run locally
+## Fastest way to view in your browser (Vercel)
 
-Because this project is dependency-free static HTML/CSS/JS, run with any static file server.
+You can deploy this in ~2 minutes and open it from any browser.
 
-Example:
+### Option A: Vercel UI (no local setup)
+
+1. Push this repo to GitHub.
+2. Go to [vercel.com/new](https://vercel.com/new).
+3. Import your repo.
+4. Framework preset: **Other** (or leave Auto).
+5. Click **Deploy**.
+6. Open the generated `https://<project>.vercel.app` URL.
+
+This repo includes `vercel.json` so Vercel serves the static app correctly. 
+
+### Option B: One-click deploy button
+
+After replacing `YOUR_GITHUB_REPO_URL` below, use this button:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=YOUR_GITHUB_REPO_URL)
+
+## Local preview (optional)
+
+If you later want to run it locally:
 
 ```bash
 python -m http.server 8000
