@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anaplan Mockup Generator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="top-nav sketch-border">
+      <div class="brand">A</div>
+      <div class="breadcrumbs" contenteditable="true">7.e | SAAS - KCG Recurring Revenue Forecast / 1. Planning / New & Renewals</div>
+      <div class="nav-actions">⎋  ⌕  ⦿</div>
+    </header>
+
+    <section class="context-bar sketch-border">
+      <div class="left-context" contenteditable="true">← 1. New Bookings & Revenue Recognition</div>
+      <div class="filters">
+        <label>Version <input value="Working Forecast" /></label>
+        <label>FY <input value="FY25" /></label>
+        <label>Business Unit <input value="1.1A" /></label>
+      </div>
+    </section>
+
+    <main class="workspace">
+      <aside class="palette sketch-border">
+        <h3>Palette</h3>
+        <button data-widget="kpi">+ KPI</button>
+        <button data-widget="grid">+ Grid</button>
+        <button data-widget="chart">+ Chart</button>
+        <button id="clear-canvas" class="secondary">Clear</button>
+        <p class="tip">Drag cards to reposition. Resize from lower-right corner.</p>
+      </aside>
+
+      <section id="canvas" class="canvas sketch-border" aria-label="mockup canvas"></section>
+
+      <aside class="insights sketch-border">
+        <h3 contenteditable="true">Additional Insights</h3>
+        <ul id="notes"></ul>
+      </aside>
+    </main>
+
+    <footer class="disclaimer sketch-border">Concept sketch for alignment only - not final UI design.</footer>
+
+    <template id="widget-template">
+      <article class="widget sketch-border" draggable="false">
+        <div class="widget-header" contenteditable="true">Widget Title</div>
+        <div class="widget-content"></div>
+        <button class="remove" title="Remove">×</button>
+        <div class="resize-handle" aria-hidden="true"></div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
