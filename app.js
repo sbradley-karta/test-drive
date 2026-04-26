@@ -5,8 +5,9 @@ const template = document.getElementById("widget-template");
 const headerFilterTemplate = document.getElementById("header-filter-template");
 const targetArea = document.getElementById("target-area");
 const toggleInsights = document.getElementById("toggle-insights");
-const uxPage = document.querySelector(".ux-page");
+const pageBody = document.querySelector(".page-body");
 const contextFilterRow = document.getElementById("context-filter-row");
+const addHeaderFilterButton = document.getElementById("add-header-filter");
 const exportPdfBtn = document.getElementById("export-pdf");
 const appShell = document.querySelector(".app-shell");
 const builderToggle = document.getElementById("builder-toggle");
@@ -29,10 +30,13 @@ document.getElementById("clear-canvas").addEventListener("click", () => {
   canvas.innerHTML = "";
   insightsCanvas.innerHTML = "";
   contextFilterRow.innerHTML = "";
+  updateHeaderFilterState();
   counter = 1;
 });
 
 exportPdfBtn.addEventListener("click", exportUxToPdf);
+
+addHeaderFilterButton.addEventListener("click", addHeaderFilter);
 
 builderToggle.addEventListener("click", () => {
   const collapsed = appShell.classList.toggle("builder-collapsed");
@@ -43,9 +47,10 @@ builderToggle.addEventListener("click", () => {
 toggleInsights.addEventListener("click", () => {
   const nowHidden = !insights.classList.contains("hidden");
   insights.classList.toggle("hidden", nowHidden);
-  uxPage.classList.toggle("insights-hidden", nowHidden);
-  toggleInsights.textContent = nowHidden ? "Insights: Off" : "Insights: On";
+  pageBody.classList.toggle("insights-hidden", nowHidden);
   toggleInsights.setAttribute("aria-pressed", String(!nowHidden));
+  toggleInsights.setAttribute("aria-label", nowHidden ? "Expand Additional Insights" : "Collapse Additional Insights");
+  toggleInsights.setAttribute("title", nowHidden ? "Expand Additional Insights" : "Collapse Additional Insights");
 
   if (nowHidden && targetArea.value === "insights") {
     targetArea.value = "canvas";
@@ -95,15 +100,6 @@ async function exportUxToPdf() {
 }
 
 function addWidget(type) {
-  if (targetArea.value === "header") {
-    if (type !== "context-filter") {
-      alert("The 2nd header row accepts context filter widgets only.");
-      return;
-    }
-    addHeaderFilter();
-    return;
-  }
-
   const destination = getDestination();
   if (!destination) return;
 
@@ -175,16 +171,6 @@ function addWidget(type) {
     widget.classList.add("bare-widget", "button-widget");
   }
 
-  if (type === "context-filter") {
-    title.textContent = "Context Filter";
-    content.innerHTML = `
-      <div class="context-filter-widget">
-        <span class="filter-label" contenteditable="true">Version</span>
-        <span class="filter-value" contenteditable="true">Working Forecast</span>
-      </div>
-    `;
-  }
-
   if (type === "text") {
     title.remove();
     content.innerHTML = `
@@ -232,8 +218,16 @@ function prepareInsightsWidget(widget) {
 
 function addHeaderFilter() {
   const chip = headerFilterTemplate.content.firstElementChild.cloneNode(true);
-  chip.querySelector(".remove-filter").addEventListener("click", () => chip.remove());
+  chip.querySelector(".remove-filter").addEventListener("click", () => {
+    chip.remove();
+    updateHeaderFilterState();
+  });
   contextFilterRow.appendChild(chip);
+  updateHeaderFilterState();
+}
+
+function updateHeaderFilterState() {
+  contextFilterRow.classList.toggle("has-header-filters", contextFilterRow.children.length > 0);
 }
 
 function getDestination() {
@@ -250,7 +244,6 @@ function getDestination() {
 function getDefaultWidth(type) {
   if (type === "kpi") return 224;
   if (type === "button") return 182;
-  if (type === "context-filter") return 252;
   if (type === "text") return 364;
   return 308;
 }
@@ -258,7 +251,6 @@ function getDefaultWidth(type) {
 function getDefaultHeight(type) {
   if (type === "kpi") return 168;
   if (type === "button") return 42;
-  if (type === "context-filter") return 140;
   if (type === "text") return 42;
   return 224;
 }

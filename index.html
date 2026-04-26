@@ -4,33 +4,79 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anaplan Mockup Generator</title>
-    <link rel="stylesheet" href="styles.css?v=20260425" />
+    <link rel="stylesheet" href="styles.css?v=20260429" />
   </head>
   <body>
     <div class="app-shell">
       <section class="mockup-frame">
-        <footer class="disclaimer sketch-border">Concept sketch for alignment only - not final UI design.</footer>
+        <section class="ux-shell-frame" aria-label="single Anaplan UX page frame">
+          <header class="top-nav anaplan-shell-row sketch-border" aria-label="fixed Anaplan application shell">
+            <div class="anaplan-brand" aria-label="Anaplan shell">
+              <span class="anaplan-logo-mark">A</span>
+              <span class="apps-label">Apps</span>
+              <span class="shell-caret" aria-hidden="true">▾</span>
+            </div>
 
-        <header class="top-nav sketch-border">
-          <div class="brand">A</div>
-          <div class="breadcrumbs" contenteditable="true">7.e | SAAS - KCG Recurring Revenue Forecast / 1. Planning / New & Renewals</div>
-          <div class="nav-actions">⎋ ⌕ ⦿</div>
-        </header>
+            <div class="shell-selector shell-app-selector">
+              <span class="shell-editable" contenteditable="true">[App Name]</span>
+              <span class="shell-caret" aria-hidden="true">▾</span>
+            </div>
 
-        <section class="context-bar sketch-border">
-          <div class="left-context" contenteditable="true">← 1. New Bookings & Revenue Recognition</div>
-          <div id="context-filter-row" class="filters-row" aria-label="context filters row"></div>
-          <button id="toggle-insights" class="toggle-btn" type="button" aria-pressed="true">Insights: On</button>
+            <div class="shell-selector shell-page-selector">
+              <span class="shell-editable" contenteditable="true">[Category Name] / [Page Name]</span>
+              <span class="shell-caret" aria-hidden="true">▾</span>
+            </div>
+
+            <div class="workspace-selector">
+              <span contenteditable="true">[Workspace Name]</span>
+              <span class="shell-caret" aria-hidden="true">▾</span>
+            </div>
+
+            <div class="utility-icons" aria-label="Utility icons">
+              <span class="utility-icon network-icon" aria-label="model map"></span>
+              <span class="utility-icon search-icon" aria-label="search"></span>
+              <span class="utility-icon bell-icon" aria-label="notifications"></span>
+              <span class="utility-icon help-icon" aria-label="help">?</span>
+            </div>
+
+            <div class="user-badge" aria-label="User initials">KA</div>
+          </header>
+
+          <section class="page-body">
+            <section class="main-page-area">
+              <section class="context-bar sketch-border">
+                <div class="page-title-group">
+                  <span class="back-chevron" aria-hidden="true">‹</span>
+                  <span class="left-context" contenteditable="true">[Page Name]</span>
+                  <span class="page-action" aria-hidden="true">↻</span>
+                  <span class="page-action" aria-hidden="true">⌯</span>
+                  <span class="page-action" aria-hidden="true">☆</span>
+                </div>
+                <div id="context-filter-row" class="filters-row" aria-label="context filters row"></div>
+                <button id="add-header-filter" class="header-filter-add" type="button" aria-label="Add context filter" title="Add context filter">+</button>
+                <div class="page-toolbar-icons" aria-label="page toolbar icons">
+                  <span class="page-tool sparkle-icon">✦</span>
+                  <span class="page-tool comment-icon">□</span>
+                  <span class="page-tool more-icon">...</span>
+                </div>
+                <button id="toggle-insights" class="toggle-btn shelf-toggle" type="button" aria-pressed="true" aria-label="Collapse Additional Insights" title="Collapse Additional Insights">
+                  <span class="shelf-toggle-icon" aria-hidden="true"></span>
+                </button>
+              </section>
+
+              <section class="ux-page sketch-border">
+                <section id="canvas" class="canvas" aria-label="main ux mockup area"></section>
+              </section>
+            </section>
+
+            <aside id="insights" class="insights">
+              <h3 contenteditable="true">Additional Insights</h3>
+              <section id="insights-canvas" class="insights-canvas" aria-label="additional insights area"></section>
+            </aside>
+          </section>
         </section>
 
-        <section class="ux-page sketch-border">
-          <section id="canvas" class="canvas" aria-label="main ux mockup area"></section>
-
-          <aside id="insights" class="insights">
-            <h3 contenteditable="true">Additional Insights</h3>
-            <section id="insights-canvas" class="insights-canvas" aria-label="additional insights area"></section>
-          </aside>
-        </section>
+        <footer class="disclaimer">Concept sketch for alignment only - not final UI design.</footer>
       </section>
 
       <aside id="builder-pane" class="builder-pane">
@@ -46,7 +92,6 @@
           <select id="target-area">
             <option value="canvas">Main Canvas</option>
             <option value="insights">Additional Insights</option>
-            <option value="header">2nd Header Row</option>
           </select>
 
           <div class="controls">
@@ -54,7 +99,6 @@
             <button data-widget="grid" type="button">+ Grid</button>
             <button data-widget="chart" type="button">+ Chart</button>
             <button data-widget="button" type="button">+ Button</button>
-            <button data-widget="context-filter" type="button">+ Context Filter</button>
             <button data-widget="text" type="button">+ Text</button>
           </div>
 
@@ -84,6 +128,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="app.js?v=20260425"></script>
+    <script src="app.js?v=20260429"></script>
   </body>
 </html>

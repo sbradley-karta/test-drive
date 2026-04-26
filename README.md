@@ -5,22 +5,22 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 ## What it does
 
 - Uses a sketch-like visual style to keep discussion conceptual.
-- Provides a consistent Anaplan-inspired page shell (navigation, second header row, main canvas, and Additional Insights pane).
+- Provides a consistent Anaplan-inspired page shell with an app-level shell row, page header row, main canvas, and Additional Insights shelf.
 - Uses a **separate Builder Controls pane** outside the UX page mockup so workshop controls are clearly distinguishable from in-product UI.
 - Uses a fixed **1600 × 900** UX mockup stage so local previews and exported PDFs stay consistent.
 - Provides collapsible, sticky Builder Controls that stay available while preserving the mockup frame.
+- Frames the Anaplan UX page as a single sketched page while keeping the concept disclaimer outside the page frame.
 - Supports adding widgets to:
   - Main Canvas
   - Additional Insights pane (auto-stacked top-to-bottom)
-  - 2nd Header Row (context filters)
 - Supports widget types:
   - KPI
   - Grid/table
   - Chart
   - Button
-  - Context Filter
   - Text
-- Supports **show/hide Additional Insights** and lets you place widgets directly inside it.
+- Supports adding context filters directly in the second header row using a hover/focus `+` affordance.
+- Supports **expand/collapse Additional Insights** with a shelf icon and lets you place widgets directly inside the shelf.
 - Adds visible three-dot drag handles on widgets for clear move affordance.
 - Snaps main canvas widgets to grid when added, moved, or resized.
 - Prevents overlapping widgets in the Main Canvas and preserves standard spacing from other widgets and canvas edges.
@@ -66,13 +66,13 @@ https://<org-or-user>.github.io/<repo-name>/
 
 ## Branch alignment note
 
-Codex work is on branch:
+Current work is on branch:
 
 ```text
-codex/create-anaplan-mockup-generator-tool
+main
 ```
 
-If you want this branch to be the production source in Vercel, set it in **Vercel → Project Settings → Git → Production Branch**.
+If you want this branch to be the production source in Vercel, set **main** in **Vercel → Project Settings → Git → Production Branch**.
 
 ## Local preview (optional)
 
@@ -91,8 +91,8 @@ http://localhost:8000
 ## Workshop usage tips
 
 1. Keep the Builder Controls pane for facilitator actions only.
-2. Add context filters to the second header row only when target is set to `2nd Header Row`.
-3. Use context filter widgets on Main/Insights canvases to sketch local filter controls inside pages.
-4. Toggle Insights On/Off to mimic stakeholder UX behavior.
+2. Hover or focus the second header row and use the small `+` button to add context filters.
+3. Use Builder Controls for Main Canvas and Additional Insights widgets only.
+4. Use the shelf icon in the second header row to expand or collapse Additional Insights.
 5. Hover or focus a grid widget to reveal row/column editing controls.
 6. Use this as alignment artifact, not final UI specification.
