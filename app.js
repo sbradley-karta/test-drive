@@ -11,14 +11,29 @@ const addHeaderFilterButton = document.getElementById("add-header-filter");
 const exportPdfBtn = document.getElementById("export-pdf");
 const appShell = document.querySelector(".app-shell");
 const builderToggle = document.getElementById("builder-toggle");
+const detailsModal = document.getElementById("widget-details-modal");
+const closeDetailsModal = document.getElementById("close-details-modal");
+const cancelDetails = document.getElementById("cancel-details");
+const saveDetails = document.getElementById("save-details");
+const detailFields = {
+  purpose: document.getElementById("detail-purpose"),
+  source: document.getElementById("detail-source"),
+  grain: document.getElementById("detail-grain"),
+  editability: document.getElementById("detail-editability"),
+  assumptions: document.getElementById("detail-assumptions"),
+  openQuestions: document.getElementById("detail-open-questions"),
+  notes: document.getElementById("detail-notes"),
+};
 
 let z = 5;
 let counter = 1;
+let activeDetailsWidget = null;
 const GRID_SIZE = 14;
 const CANVAS_GAP = GRID_SIZE;
 const MIN_WIDGET_WIDTH = 168;
 const MIN_WIDGET_HEIGHT = 70;
 const MIN_COMPACT_WIDGET_HEIGHT = 42;
+const EXPANDED_CANVAS_HEIGHT = 1260;
 const EXPORT_WIDTH = 1600;
 const EXPORT_HEIGHT = 900;
 
@@ -37,6 +52,11 @@ document.getElementById("clear-canvas").addEventListener("click", () => {
 exportPdfBtn.addEventListener("click", exportUxToPdf);
 
 addHeaderFilterButton.addEventListener("click", addHeaderFilter);
+
+closeDetailsModal.addEventListener("click", closeWidgetDetailsModal);
+cancelDetails.addEventListener("click", closeWidgetDetailsModal);
+detailsModal.addEventListener("cancel", closeWidgetDetailsModal);
+saveDetails.addEventListener("click", saveWidgetDetails);
 
 builderToggle.addEventListener("click", () => {
   const collapsed = appShell.classList.toggle("builder-collapsed");
@@ -105,6 +125,7 @@ function addWidget(type) {
 
   const widget = template.content.firstElementChild.cloneNode(true);
   widget.dataset.type = type;
+  widget.dataset.widgetId = `widget-${counter}`;
   const width = snapToGrid(getDefaultWidth(type));
   const height = snapToGrid(getDefaultHeight(type));
   widget.style.width = `${width}px`;
@@ -149,6 +170,7 @@ function addWidget(type) {
       </table>
     `;
     setupGridControls(widget);
+    setupGridCheckboxConversion(widget);
   }
 
   if (type === "chart") {
@@ -179,9 +201,38 @@ function addWidget(type) {
     widget.classList.add("bare-widget", "text-only-widget");
   }
 
-  widget.querySelector(".remove").addEventListener("click", () => {
-    widget.remove();
-  });
+  if (type === "checkbox") {
+    title.remove();
+    content.innerHTML = `
+      <label class="checkbox-widget-content">
+        <span class="mock-checkbox" contenteditable="false"></span>
+        <span class="checkbox-label" contenteditable="true">Show Active Projects</span>
+      </label>
+    `;
+    widget.classList.add("bare-widget", "checkbox-widget");
+  }
+
+  if (type === "field") {
+    title.remove();
+    content.innerHTML = `
+      <div class="field-widget-content">
+        <div class="field-title" contenteditable="true">Current Forecast</div>
+        <div class="field-box" contenteditable="true">Working Forecast</div>
+      </div>
+    `;
+    widget.classList.add("field-widget");
+  }
+
+  if (type === "textbox") {
+    title.remove();
+    content.innerHTML = `
+      <div class="textbox-widget-content" contenteditable="true">Add workshop note or descriptive text...</div>
+    `;
+    widget.classList.add("textbox-widget");
+  }
+
+  setupWidgetMetadata(widget);
+  setupWidgetChrome(widget);
 
   destination.appendChild(widget);
 
@@ -201,6 +252,114 @@ function addWidget(type) {
   makeDraggable(widget, destination, isInsightsDestination);
   makeResizable(widget, destination, isInsightsDestination);
   counter += 1;
+}
+
+function setupWidgetMetadata(widget) {
+  widget._buildMetadata = {
+    purpose: "",
+    source: "",
+    grain: "",
+    editability: "",
+    assumptions: "",
+    openQuestions: "",
+    notes: "",
+    filters: [],
+  };
+}
+
+function setupWidgetChrome(widget) {
+  widget.querySelector(".remove").addEventListener("click", () => {
+    widget.remove();
+  });
+
+  widget.querySelector(".details").addEventListener("click", (event) => {
+    event.stopPropagation();
+    openWidgetDetailsModal(widget);
+  });
+
+  widget.querySelector(".add-widget-filter").addEventListener("click", (event) => {
+    event.stopPropagation();
+    addWidgetFilter(widget);
+  });
+}
+
+function openWidgetDetailsModal(widget) {
+  activeDetailsWidget = widget;
+  const metadata = getWidgetMetadata(widget);
+
+  Object.entries(detailFields).forEach(([key, field]) => {
+    field.value = metadata[key] || "";
+  });
+
+  if (typeof detailsModal.showModal === "function") {
+    detailsModal.showModal();
+  } else {
+    detailsModal.setAttribute("open", "");
+  }
+}
+
+function closeWidgetDetailsModal() {
+  activeDetailsWidget = null;
+  if (detailsModal.open) {
+    detailsModal.close();
+  } else {
+    detailsModal.removeAttribute("open");
+  }
+}
+
+function saveWidgetDetails(event) {
+  event.preventDefault();
+  if (!activeDetailsWidget) return;
+
+  const metadata = getWidgetMetadata(activeDetailsWidget);
+  Object.entries(detailFields).forEach(([key, field]) => {
+    metadata[key] = field.value.trim();
+  });
+
+  updateWidgetMetadataState(activeDetailsWidget);
+  closeWidgetDetailsModal();
+}
+
+function getWidgetMetadata(widget) {
+  if (!widget._buildMetadata) setupWidgetMetadata(widget);
+  return widget._buildMetadata;
+}
+
+function updateWidgetMetadataState(widget) {
+  const metadata = getWidgetMetadata(widget);
+  const hasDetails = ["purpose", "source", "grain", "editability", "assumptions", "openQuestions", "notes"].some(
+    (key) => metadata[key]
+  );
+  widget.classList.toggle("has-widget-details", hasDetails);
+}
+
+function addWidgetFilter(widget, name = "Filter") {
+  const list = widget.querySelector(".widget-filter-list");
+  const chip = document.createElement("span");
+  chip.className = "widget-filter-chip";
+  chip.innerHTML = `
+    <span class="widget-filter-name" contenteditable="true">${name}</span>
+    <button class="remove-widget-filter" type="button" aria-label="Remove widget filter">×</button>
+  `;
+
+  chip.querySelector(".remove-widget-filter").addEventListener("click", () => {
+    chip.remove();
+    syncWidgetFilters(widget);
+  });
+
+  chip.querySelector(".widget-filter-name").addEventListener("input", () => {
+    syncWidgetFilters(widget);
+  });
+
+  list.appendChild(chip);
+  syncWidgetFilters(widget);
+}
+
+function syncWidgetFilters(widget) {
+  const metadata = getWidgetMetadata(widget);
+  metadata.filters = Array.from(widget.querySelectorAll(".widget-filter-name"))
+    .map((filter) => filter.textContent.trim())
+    .filter(Boolean);
 }
 
 function prepareInsightsWidget(widget) {
@@ -244,14 +403,20 @@ function getDestination() {
 function getDefaultWidth(type) {
   if (type === "kpi") return 224;
   if (type === "button") return 182;
+  if (type === "checkbox") return 350;
+  if (type === "field") return 300;
   if (type === "text") return 364;
+  if (type === "textbox") return 360;
   return 308;
 }
 
 function getDefaultHeight(type) {
   if (type === "kpi") return 168;
   if (type === "button") return 42;
+  if (type === "checkbox") return 56;
+  if (type === "field") return 104;
   if (type === "text") return 42;
+  if (type === "textbox") return 154;
   return 224;
 }
 
@@ -371,6 +536,28 @@ function setupGridControls(widget) {
   });
 }
 
+function setupGridCheckboxConversion(widget) {
+  const table = widget.querySelector(".grid-table");
+  if (!table) return;
+
+  table.addEventListener("input", (event) => {
+    const cell = event.target.closest("td");
+    if (!cell || cell.querySelector(".grid-cell-checkbox")) return;
+
+    if (cell.textContent.trim().toLowerCase() === "x") {
+      cell.textContent = "";
+      cell.contentEditable = "false";
+      cell.classList.add("checkbox-cell");
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = true;
+      checkbox.className = "grid-cell-checkbox";
+      cell.appendChild(checkbox);
+    }
+  });
+}
+
 function updateGrid(widget, action) {
   const table = widget.querySelector(".grid-table");
   const headerRow = table?.querySelector("thead tr");
@@ -414,7 +601,7 @@ function updateGrid(widget, action) {
 
 function findOpenPosition(container, widget, width, height) {
   const maxX = container.clientWidth - width - CANVAS_GAP;
-  const maxY = container.clientHeight - height - CANVAS_GAP;
+  const maxY = getPlacementHeight(container) - height - CANVAS_GAP;
 
   for (let y = CANVAS_GAP; y <= maxY; y += GRID_SIZE) {
     for (let x = CANVAS_GAP; x <= maxX; x += GRID_SIZE) {
@@ -431,12 +618,17 @@ function findOpenPosition(container, widget, width, height) {
 function isRectValid(container, rect, currentWidget) {
   if (rect.x < CANVAS_GAP || rect.y < CANVAS_GAP) return false;
   if (rect.x + rect.width > container.clientWidth - CANVAS_GAP) return false;
-  if (rect.y + rect.height > container.clientHeight - CANVAS_GAP) return false;
+  if (rect.y + rect.height > getPlacementHeight(container) - CANVAS_GAP) return false;
 
   return Array.from(container.querySelectorAll(".widget")).every((widget) => {
     if (widget === currentWidget) return true;
     return !rectsOverlapWithGap(rect, getElementRect(widget), CANVAS_GAP);
   });
+}
+
+function getPlacementHeight(container) {
+  if (container === canvas) return Math.max(container.scrollHeight, container.clientHeight, EXPANDED_CANVAS_HEIGHT);
+  return container.clientHeight;
 }
 
 function rectsOverlapWithGap(a, b, gap) {

@@ -110,6 +110,23 @@ Only the main content canvas and optional Additional Insights content should var
 
 The shell, page header, selector placement, toolbar placement, and disclaimer behavior should remain consistent.
 
+## v0.1.6 Current Enhancement Direction
+
+The v0.1.6 enhancement set improves workshop facilitation while preserving the visual-first, low-fidelity mockup contract.
+
+Key additions:
+
+* Per-widget build details captured behind a modal rather than displayed in the mockup.
+* Structured widget metadata for purpose, source/module, grain/dimensionality, editability, assumptions, open questions, notes, and widget-level filters.
+* Widget-level context filter chips that capture filter names only.
+* Additional workshop widgets for checkbox controls, field-style inputs, and bordered text boxes.
+* A vertically scrollable main canvas for larger working sessions while keeping exported PDFs constrained to the visible 1600 × 900 frame.
+* Simple grid-cell checkbox conversion when a user types `x` into a cell.
+
+This direction reinforces the principle:
+
+> The visual mockup remains the alignment artifact, while structured widget metadata becomes the delivery bridge for future Page Design Record output.
+
 ---
 
 # 5. Product Philosophy

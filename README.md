@@ -19,14 +19,29 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
   - Chart
   - Button
   - Text
+  - Checkbox
+  - Field
+  - Text Box
 - Supports adding context filters directly in the second header row using a hover/focus `+` affordance.
+- Supports per-widget context filter chips with editable filter names.
+- Supports per-widget build details for future handoff, including purpose, source, grain, editability, assumptions, open questions, and notes.
 - Supports **expand/collapse Additional Insights** with a shelf icon and lets you place widgets directly inside the shelf.
 - Adds visible three-dot drag handles on widgets for clear move affordance.
 - Snaps main canvas widgets to grid when added, moved, or resized.
 - Prevents overlapping widgets in the Main Canvas and preserves standard spacing from other widgets and canvas edges.
-- Supports editable grid headers and cells, plus inline row/column add/remove controls on grid widgets.
+- Supports editable grid headers and cells, inline row/column add/remove controls, tighter cell padding, and simple `x` to checkbox conversion on grid cells.
+- Supports a vertically scrollable Main Canvas for larger workshop sketches while preserving the fixed export frame.
 - Adds direct 16:9 landscape PDF export from Builder Controls for the UX mockup frame.
 - Hides workshop-only controls from PDF export so the artifact stays clean.
+
+## v0.1.6 workshop enhancements
+
+v0.1.6 focuses on live workshop facilitation and downstream build handoff readiness.
+
+- Widget details are captured through a modal so the mockup stays visual-first while retaining build-support context.
+- Widget-level filter chips are name-only annotations that help communicate local context without creating data-binding rules.
+- The Main Canvas can scroll vertically for larger working sessions; PDF export still captures the visible 1600 × 900 frame.
+- New Checkbox, Field, and Text Box widgets support common Anaplan-style page concepts from workshop screenshots.
 
 ## Fastest way to view in your browser
 
@@ -95,4 +110,6 @@ http://localhost:8000
 3. Use Builder Controls for Main Canvas and Additional Insights widgets only.
 4. Use the shelf icon in the second header row to expand or collapse Additional Insights.
 5. Hover or focus a grid widget to reveal row/column editing controls.
-6. Use this as alignment artifact, not final UI specification.
+6. Hover or focus any widget to add local filter chips or open widget build details.
+7. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
+8. Use this as alignment artifact, not final UI specification.
