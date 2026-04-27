@@ -116,16 +116,16 @@ The v0.1.6 enhancement set improves workshop facilitation while preserving the v
 
 Key additions:
 
-* Per-widget build details captured behind a modal rather than displayed in the mockup.
-* Structured widget metadata for purpose, source/module, grain/dimensionality, editability, assumptions, open questions, notes, and widget-level filters.
-* Widget-level context filter chips that capture filter names only.
-* Additional workshop widgets for checkbox controls, field-style inputs, and bordered text boxes.
+* Per-card build details captured behind a modal rather than displayed in the mockup.
+* Structured card metadata for purpose, source/module, grain/dimensionality, editability, assumptions, open questions, notes, and card-level filters.
+* Card-level context filter chips that capture filter names only.
+* Additional workshop cards for checkbox controls, field-style inputs, and bordered text boxes.
 * A vertically scrollable main canvas for larger working sessions while keeping exported PDFs constrained to the visible 1600 × 900 frame.
-* Simple grid-cell checkbox conversion when a user types `x` into a cell.
+* Simple grid-cell checkbox conversion when a user types `x` into a cell, with double-click reversal back to editable text.
 
 This direction reinforces the principle:
 
-> The visual mockup remains the alignment artifact, while structured widget metadata becomes the delivery bridge for future Page Design Record output.
+> The visual mockup remains the alignment artifact, while structured card metadata becomes the delivery bridge for future Page Design Record output.
 
 ---
 

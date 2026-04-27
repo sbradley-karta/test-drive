@@ -243,7 +243,7 @@ function addWidget(type) {
     const position = findOpenPosition(destination, widget, width, height);
     if (!position) {
       widget.remove();
-      alert("There is not enough open space in the main canvas for that widget.");
+      alert("There is not enough open space in the main canvas for that card.");
       return;
     }
     applyRect(widget, position);
@@ -555,6 +555,16 @@ function setupGridCheckboxConversion(widget) {
       checkbox.className = "grid-cell-checkbox";
       cell.appendChild(checkbox);
     }
+  });
+
+  table.addEventListener("dblclick", (event) => {
+    const cell = event.target.closest("td.checkbox-cell");
+    if (!cell) return;
+
+    cell.innerHTML = "";
+    cell.classList.remove("checkbox-cell");
+    cell.contentEditable = "true";
+    cell.focus();
   });
 }
 

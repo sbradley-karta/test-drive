@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anaplan Mockup Generator</title>
-    <link rel="stylesheet" href="styles.css?v=20260430" />
+    <link rel="stylesheet" href="styles.css?v=20260431" />
   </head>
   <body>
     <div class="app-shell">
@@ -88,7 +88,7 @@
           <h3>Mockup Builder Controls</h3>
           <p>These controls are for workshop facilitation only (not part of the UX page).</p>
 
-          <label class="target-label" for="target-area">Add widget to</label>
+          <label class="target-label" for="target-area">Add card to</label>
           <select id="target-area">
             <option value="canvas">Main Canvas</option>
             <option value="insights">Additional Insights</option>
@@ -99,13 +99,13 @@
             <button data-widget="grid" type="button">+ Grid</button>
             <button data-widget="chart" type="button">+ Chart</button>
             <button data-widget="button" type="button">+ Button</button>
-            <button data-widget="text" type="button">+ Text</button>
+            <button data-widget="text" type="button">+ Title/Header</button>
             <button data-widget="checkbox" type="button">+ Checkbox</button>
             <button data-widget="field" type="button">+ Field</button>
             <button data-widget="textbox" type="button">+ Text Box</button>
           </div>
 
-          <button id="clear-canvas" class="secondary" type="button">Clear All Widgets</button>
+          <button id="clear-canvas" class="secondary" type="button">Clear All Cards</button>
           <button id="export-pdf" type="button">Export UX Mockup PDF</button>
         </div>
       </aside>
@@ -113,12 +113,12 @@
 
     <template id="widget-template">
       <article class="widget sketch-border" draggable="false">
-        <div class="drag-handle" title="Drag widget" aria-label="Drag widget">⋮⋮</div>
-        <div class="widget-header" contenteditable="true">Widget Title</div>
+        <div class="drag-handle" title="Drag card" aria-label="Drag card">⋮⋮</div>
+        <div class="widget-header" contenteditable="true">Card Title</div>
         <div class="widget-content"></div>
-        <div class="widget-filter-list" aria-label="Widget filters"></div>
-        <button class="add-widget-filter" type="button" title="Add widget filter">+ Filter</button>
-        <button class="details" title="Widget details" type="button" aria-label="Widget details">ⓘ</button>
+        <div class="widget-filter-list" aria-label="Card filters"></div>
+        <button class="add-widget-filter" type="button" title="Add card filter">+ Filter</button>
+        <button class="details" title="Card details" type="button" aria-label="Card details">ⓘ</button>
         <button class="remove" title="Remove" type="button">×</button>
         <div class="resize-handle" aria-hidden="true"></div>
       </article>
@@ -135,11 +135,11 @@
     <dialog id="widget-details-modal" class="widget-details-modal">
       <form method="dialog" class="widget-details-form">
         <header>
-          <h3>Widget Build Details</h3>
-          <button id="close-details-modal" type="button" aria-label="Close widget details">×</button>
+          <h3>Card Build Details</h3>
+          <button id="close-details-modal" type="button" aria-label="Close card details">×</button>
         </header>
 
-        <label for="detail-purpose">Widget purpose</label>
+        <label for="detail-purpose">Card purpose</label>
         <textarea id="detail-purpose" rows="2"></textarea>
 
         <label for="detail-source">Source module or data source</label>
@@ -174,6 +174,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="app.js?v=20260430"></script>
+    <script src="app.js?v=20260431"></script>
   </body>
 </html>
