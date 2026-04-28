@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anaplan Mockup Generator</title>
-    <link rel="stylesheet" href="styles.css?v=20260501" />
+    <link rel="stylesheet" href="styles.css?v=20260502" />
   </head>
   <body>
     <div class="app-shell">
@@ -70,6 +70,9 @@
               <section class="ux-page sketch-border">
                 <section id="canvas" class="canvas" aria-label="main ux mockup area"></section>
               </section>
+              <p id="canvas-overflow-warning" class="canvas-overflow-warning" hidden>
+                Additional cards are below the visible canvas. Scroll to review the full page concept.
+              </p>
             </section>
 
             <aside id="insights" class="insights">
@@ -94,7 +97,7 @@
             </div>
             <div>
               <h3>Mockup Builder Controls</h3>
-              <p>v0.1.8 local project workspace</p>
+              <p>v0.1.9 local project workspace</p>
             </div>
           </header>
 
@@ -105,6 +108,7 @@
               <button id="new-page" type="button">New Page</button>
               <button id="duplicate-page" type="button">Duplicate</button>
               <button id="rename-page" type="button">Rename</button>
+              <button id="page-details" type="button">Page Details</button>
               <button id="delete-page" class="danger" type="button">Delete</button>
             </div>
           </section>
@@ -144,9 +148,24 @@
 
           <section class="builder-section output-section" aria-label="Export controls">
             <h4>Outputs</h4>
-            <button id="export-pdf" type="button">Export UX Mockup PDF</button>
-            <button id="export-project" type="button">Export Project JSON</button>
-            <button id="import-project" type="button">Import Project JSON</button>
+            <div class="output-actions">
+              <button id="export-pdf" type="button">
+                <img src="assets/icons/export.svg" alt="" aria-hidden="true" />
+                <span>Export UX PDF</span>
+              </button>
+              <button id="export-build-brief" type="button">
+                <img src="assets/icons/export.svg" alt="" aria-hidden="true" />
+                <span>Build Brief CSV</span>
+              </button>
+              <button id="export-project" type="button">
+                <img src="assets/icons/export.svg" alt="" aria-hidden="true" />
+                <span>Export JSON</span>
+              </button>
+              <button id="import-project" type="button">
+                <img src="assets/icons/import.svg" alt="" aria-hidden="true" />
+                <span>Import JSON</span>
+              </button>
+            </div>
             <input id="import-project-file" type="file" accept="application/json,.json" hidden />
           </section>
         </div>
@@ -198,6 +217,12 @@
           <option value="Mixed">Mixed editable/read-only</option>
         </select>
 
+        <label for="detail-inputs">Inputs</label>
+        <textarea id="detail-inputs" rows="2"></textarea>
+
+        <label for="detail-outputs">Outputs</label>
+        <textarea id="detail-outputs" rows="2"></textarea>
+
         <label for="detail-assumptions">Build assumptions</label>
         <textarea id="detail-assumptions" rows="3"></textarea>
 
@@ -210,6 +235,29 @@
         <div class="modal-actions">
           <button id="cancel-details" class="secondary" type="button">Cancel</button>
           <button id="save-details" type="submit">Save Details</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="page-details-modal" class="widget-details-modal">
+      <form method="dialog" class="widget-details-form">
+        <header>
+          <h3>Page Details</h3>
+          <button id="close-page-details-modal" type="button" aria-label="Close page details">×</button>
+        </header>
+
+        <label for="page-functional-area">Functional area</label>
+        <input id="page-functional-area" type="text" />
+
+        <label for="page-persona">Persona</label>
+        <input id="page-persona" type="text" />
+
+        <label for="page-purpose">Page purpose</label>
+        <textarea id="page-purpose" rows="3"></textarea>
+
+        <div class="modal-actions">
+          <button id="cancel-page-details" class="secondary" type="button">Cancel</button>
+          <button id="save-page-details" type="submit">Save Details</button>
         </div>
       </form>
     </dialog>
@@ -233,6 +281,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="app.js?v=20260501"></script>
+    <script src="app.js?v=20260502"></script>
   </body>
 </html>

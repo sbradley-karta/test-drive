@@ -7,6 +7,8 @@ const targetArea = document.getElementById("target-area");
 const targetAreaChoices = document.querySelectorAll('input[name="target-area-choice"]');
 const toggleInsights = document.getElementById("toggle-insights");
 const pageBody = document.querySelector(".page-body");
+const uxPage = document.querySelector(".ux-page");
+const canvasOverflowWarning = document.getElementById("canvas-overflow-warning");
 const contextFilterRow = document.getElementById("context-filter-row");
 const addHeaderFilterButton = document.getElementById("add-header-filter");
 const exportPdfBtn = document.getElementById("export-pdf");
@@ -16,6 +18,10 @@ const detailsModal = document.getElementById("widget-details-modal");
 const closeDetailsModal = document.getElementById("close-details-modal");
 const cancelDetails = document.getElementById("cancel-details");
 const saveDetails = document.getElementById("save-details");
+const pageDetailsModal = document.getElementById("page-details-modal");
+const closePageDetailsModal = document.getElementById("close-page-details-modal");
+const cancelPageDetails = document.getElementById("cancel-page-details");
+const savePageDetails = document.getElementById("save-page-details");
 const renamePageModal = document.getElementById("rename-page-modal");
 const closeRenamePageModal = document.getElementById("close-rename-page-modal");
 const cancelRenamePage = document.getElementById("cancel-rename-page");
@@ -28,7 +34,9 @@ const savePageBtn = document.getElementById("save-page");
 const newPageBtn = document.getElementById("new-page");
 const duplicatePageBtn = document.getElementById("duplicate-page");
 const renamePageBtn = document.getElementById("rename-page");
+const pageDetailsBtn = document.getElementById("page-details");
 const deletePageBtn = document.getElementById("delete-page");
+const exportBuildBriefBtn = document.getElementById("export-build-brief");
 const exportProjectBtn = document.getElementById("export-project");
 const importProjectBtn = document.getElementById("import-project");
 const importProjectFile = document.getElementById("import-project-file");
@@ -42,9 +50,16 @@ const detailFields = {
   source: document.getElementById("detail-source"),
   grain: document.getElementById("detail-grain"),
   editability: document.getElementById("detail-editability"),
+  inputs: document.getElementById("detail-inputs"),
+  outputs: document.getElementById("detail-outputs"),
   assumptions: document.getElementById("detail-assumptions"),
   openQuestions: document.getElementById("detail-open-questions"),
   notes: document.getElementById("detail-notes"),
+};
+const pageDetailFields = {
+  functionalArea: document.getElementById("page-functional-area"),
+  persona: document.getElementById("page-persona"),
+  purpose: document.getElementById("page-purpose"),
 };
 
 let z = 5;
@@ -53,7 +68,7 @@ let activeDetailsWidget = null;
 let project = null;
 let isRestoring = false;
 let saveTimer = null;
-const APP_VERSION = "0.1.8";
+const APP_VERSION = "0.1.9";
 const STORAGE_KEY = "karta-anaplan-mockup-project-v018";
 const GRID_SIZE = 14;
 const CANVAS_GAP = GRID_SIZE;
@@ -84,6 +99,7 @@ document.getElementById("clear-canvas").addEventListener("click", () => {
   updateHeaderFilterState();
   counter = 1;
   z = 5;
+  updateCanvasOverflowWarning();
   saveActivePageNow();
 });
 
@@ -93,6 +109,10 @@ closeDetailsModal.addEventListener("click", closeWidgetDetailsModal);
 cancelDetails.addEventListener("click", closeWidgetDetailsModal);
 detailsModal.addEventListener("cancel", closeWidgetDetailsModal);
 saveDetails.addEventListener("click", saveWidgetDetails);
+closePageDetailsModal.addEventListener("click", closePageDetailsDialog);
+cancelPageDetails.addEventListener("click", closePageDetailsDialog);
+pageDetailsModal.addEventListener("cancel", closePageDetailsDialog);
+savePageDetails.addEventListener("click", savePageDetailsMetadata);
 closeRenamePageModal.addEventListener("click", closeRenamePageDialog);
 cancelRenamePage.addEventListener("click", closeRenamePageDialog);
 renamePageModal.addEventListener("cancel", closeRenamePageDialog);
@@ -187,6 +207,8 @@ renamePageBtn.addEventListener("click", () => {
   }
 });
 
+pageDetailsBtn.addEventListener("click", openPageDetailsDialog);
+
 deletePageBtn.addEventListener("click", () => {
   if (project.pages.length <= 1) {
     alert("Keep at least one page in the project.");
@@ -202,6 +224,8 @@ deletePageBtn.addEventListener("click", () => {
   restorePage(getActivePage());
   persistProject();
 });
+
+exportBuildBriefBtn.addEventListener("click", exportBuildBriefCsv);
 
 exportProjectBtn.addEventListener("click", () => {
   saveActivePageNow();
@@ -257,6 +281,7 @@ document.addEventListener("change", (event) => {
   }
 });
 
+window.addEventListener("resize", updateCanvasOverflowWarning);
 window.addEventListener("beforeunload", saveActivePageNow);
 
 initProject();
@@ -303,6 +328,137 @@ async function exportUxToPdf() {
   }
 }
 
+function exportBuildBriefCsv() {
+  saveActivePageNow();
+  const columns = [
+    "Page name",
+    "Functional area",
+    "Persona",
+    "Page purpose",
+    "Global selectors",
+    "Card name",
+    "Card type",
+    "Source module",
+    "Grain",
+    "Editable?",
+    "Inputs",
+    "Outputs",
+    "Open questions",
+    "Build notes",
+  ];
+  const rows = project.pages.flatMap((page) => {
+    const metadata = getPageMetadata(page);
+    const globalSelectors = getGlobalSelectorLabels(page).join(", ");
+    return getPageBuildBriefCards(page).map((card) => {
+      const cardMetadata = {
+        purpose: "",
+        source: "",
+        grain: "",
+        editability: "",
+        inputs: "",
+        outputs: "",
+        assumptions: "",
+        openQuestions: "",
+        notes: "",
+        filters: [],
+        ...(card.metadata || {}),
+      };
+
+      return [
+        page.name || "",
+        metadata.functionalArea || "",
+        metadata.persona || "",
+        metadata.purpose || "",
+        globalSelectors,
+        getCardName(card),
+        getCardTypeLabel(card, cardMetadata),
+        cardMetadata.source || "",
+        cardMetadata.grain || "",
+        cardMetadata.editability || "",
+        cardMetadata.inputs || "",
+        cardMetadata.outputs || "",
+        cardMetadata.openQuestions || "",
+        cardMetadata.notes || "",
+      ];
+    });
+  });
+
+  const csv = [columns, ...rows].map((row) => row.map(escapeCsvValue).join(",")).join("\r\n");
+  downloadBlob(
+    `\uFEFF${csv}`,
+    `${slugify(project.name || "mockup-project")}-build-brief-v${APP_VERSION}.csv`,
+    "text/csv;charset=utf-8"
+  );
+}
+
+function getGlobalSelectorLabels(page) {
+  return (page.headerFilters || [])
+    .map((filter) => filter.label || "")
+    .map((label) => label.trim())
+    .filter(Boolean);
+}
+
+function getPageBuildBriefCards(page) {
+  return [...(page.mainCards || []), ...(page.insightCards || [])];
+}
+
+function getCardName(card) {
+  const headerName = getCardHeaderText(card.headerHTML || "");
+  if (headerName) return headerName;
+  return getTextFromHtml(card.contentHTML || "");
+}
+
+function getCardHeaderText(html) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+  const gridTitle = wrapper.querySelector(".grid-title");
+  if (gridTitle?.textContent.trim()) return normalizeWhitespace(gridTitle.textContent);
+  wrapper.querySelectorAll("button, .grid-controls").forEach((control) => control.remove());
+  return normalizeWhitespace(wrapper.textContent);
+}
+
+function getTextFromHtml(html) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = html;
+  return normalizeWhitespace(wrapper.textContent);
+}
+
+function getCardTypeLabel(card, metadata) {
+  if (card.type === "grid") {
+    return metadata.editability ? `${metadata.editability} grid` : "Grid/table";
+  }
+
+  const labels = {
+    kpi: "KPI",
+    chart: "Chart",
+    button: "Button",
+    text: "Title/Header",
+    checkbox: "Checkbox",
+    field: "Field",
+    textbox: "Text Box",
+    logo: "Logo Placeholder",
+  };
+  return labels[card.type] || "Card";
+}
+
+function escapeCsvValue(value) {
+  const stringValue = String(value ?? "");
+  if (/[",\r\n]/.test(stringValue)) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+  return stringValue;
+}
+
+function downloadBlob(contents, filename, type) {
+  const blob = new Blob([contents], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function addWidget(type) {
   const destination = getDestination();
   if (!destination) return;
@@ -330,6 +486,7 @@ function addWidget(type) {
   }
 
   counter += 1;
+  updateCanvasOverflowWarning();
   saveActivePageNow();
 }
 
@@ -464,6 +621,8 @@ function setupWidgetMetadata(widget, metadata = null) {
     source: "",
     grain: "",
     editability: "",
+    inputs: "",
+    outputs: "",
     assumptions: "",
     openQuestions: "",
     notes: "",
@@ -475,6 +634,7 @@ function setupWidgetMetadata(widget, metadata = null) {
 function setupWidgetChrome(widget) {
   widget.querySelector(".remove").addEventListener("click", () => {
     widget.remove();
+    updateCanvasOverflowWarning();
     saveActivePageNow();
   });
 
@@ -513,12 +673,49 @@ function closeWidgetDetailsModal() {
   }
 }
 
+function openPageDetailsDialog() {
+  saveActivePageNow();
+  const page = getActivePage();
+  const metadata = getPageMetadata(page);
+
+  Object.entries(pageDetailFields).forEach(([key, field]) => {
+    field.value = metadata[key] || "";
+  });
+
+  if (typeof pageDetailsModal.showModal === "function") {
+    pageDetailsModal.showModal();
+  } else {
+    pageDetailsModal.setAttribute("open", "");
+  }
+}
+
+function closePageDetailsDialog() {
+  if (pageDetailsModal.open) {
+    pageDetailsModal.close();
+  } else {
+    pageDetailsModal.removeAttribute("open");
+  }
+}
+
 function closeRenamePageDialog() {
   if (renamePageModal.open) {
     renamePageModal.close();
   } else {
     renamePageModal.removeAttribute("open");
   }
+}
+
+function savePageDetailsMetadata(event) {
+  event.preventDefault();
+  const page = getActivePage();
+  const metadata = getPageMetadata(page);
+
+  Object.entries(pageDetailFields).forEach(([key, field]) => {
+    metadata[key] = field.value.trim();
+  });
+
+  saveActivePageNow();
+  closePageDetailsDialog();
 }
 
 function saveRenamePageName(event) {
@@ -554,11 +751,28 @@ function getWidgetMetadata(widget) {
   return widget._buildMetadata;
 }
 
+function getPageMetadata(page) {
+  if (!page.metadata) page.metadata = createDefaultPageMetadata();
+  page.metadata = {
+    ...createDefaultPageMetadata(),
+    ...page.metadata,
+  };
+  return page.metadata;
+}
+
 function updateWidgetMetadataState(widget) {
   const metadata = getWidgetMetadata(widget);
-  const hasDetails = ["purpose", "source", "grain", "editability", "assumptions", "openQuestions", "notes"].some(
-    (key) => metadata[key]
-  );
+  const hasDetails = [
+    "purpose",
+    "source",
+    "grain",
+    "editability",
+    "inputs",
+    "outputs",
+    "assumptions",
+    "openQuestions",
+    "notes",
+  ].some((key) => metadata[key]);
   widget.classList.toggle("has-widget-details", hasDetails);
 }
 
@@ -705,7 +919,10 @@ function makeDraggable(el, container, isInsightsDestination) {
   });
 
   window.addEventListener("mouseup", () => {
-    if (dragging) saveActivePageNow();
+    if (dragging) {
+      updateCanvasOverflowWarning();
+      saveActivePageNow();
+    }
     dragging = false;
     document.body.style.userSelect = "";
   });
@@ -752,7 +969,10 @@ function makeResizable(el, container, isInsightsDestination) {
   });
 
   window.addEventListener("mouseup", () => {
-    if (resizing) saveActivePageNow();
+    if (resizing) {
+      updateCanvasOverflowWarning();
+      saveActivePageNow();
+    }
     resizing = false;
     document.body.style.userSelect = "";
   });
@@ -877,6 +1097,7 @@ function createDefaultPage(name) {
     id: createId("page"),
     name,
     updatedAt: new Date().toISOString(),
+    metadata: createDefaultPageMetadata(),
     shell: {
       appName: "[App Name]",
       pagePath: name,
@@ -893,6 +1114,14 @@ function createDefaultPage(name) {
   };
 }
 
+function createDefaultPageMetadata() {
+  return {
+    functionalArea: "",
+    persona: "",
+    purpose: "",
+  };
+}
+
 function normalizeProject(candidate) {
   if (!candidate || !Array.isArray(candidate.pages) || candidate.pages.length === 0) {
     throw new Error("Project JSON does not contain pages.");
@@ -903,6 +1132,10 @@ function normalizeProject(candidate) {
     ...page,
     id: page.id || createId("page"),
     name: page.name || `Page ${index + 1}`,
+    metadata: {
+      ...createDefaultPageMetadata(),
+      ...(page.metadata || {}),
+    },
     shell: {
       ...createDefaultPage(page.name || `Page ${index + 1}`).shell,
       ...(page.shell || {}),
@@ -960,6 +1193,7 @@ function captureCurrentPage() {
   return {
     name,
     updatedAt: new Date().toISOString(),
+    metadata: getPageMetadata(getActivePage()),
     shell: {
       appName: shellAppName.textContent.trim() || "[App Name]",
       pagePath: shellPageName.textContent.trim() || name,
@@ -1024,6 +1258,7 @@ function restorePage(page) {
   z = Math.max(page.nextZ || 5, getHighestZ());
   isRestoring = false;
   renderPageSelect();
+  updateCanvasOverflowWarning();
 }
 
 function restoreCards(container, cards, isInsightsDestination) {
@@ -1130,12 +1365,22 @@ function setInsightsHidden(hidden) {
   toggleInsights.setAttribute("aria-pressed", String(!hidden));
   toggleInsights.setAttribute("aria-label", hidden ? "Expand Additional Insights" : "Collapse Additional Insights");
   toggleInsights.setAttribute("title", hidden ? "Expand Additional Insights" : "Collapse Additional Insights");
+  updateCanvasOverflowWarning();
 }
 
 function syncTargetAreaChoices() {
   targetAreaChoices.forEach((choice) => {
     choice.checked = choice.value === targetArea.value;
   });
+}
+
+function updateCanvasOverflowWarning() {
+  if (!canvasOverflowWarning || !uxPage) return;
+  const visibleBottom = uxPage.clientHeight;
+  const hasOverflowCards = Array.from(canvas.querySelectorAll(":scope > .widget")).some((widget) => {
+    return widget.offsetTop + widget.offsetHeight > visibleBottom + 1;
+  });
+  canvasOverflowWarning.hidden = !hasOverflowCards;
 }
 
 function findOpenPosition(container, widget, width, height) {
@@ -1226,6 +1471,10 @@ function slugify(value) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 60) || "mockup-project";
+}
+
+function normalizeWhitespace(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
 function structuredCloneSafe(value) {

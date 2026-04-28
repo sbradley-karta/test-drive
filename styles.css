@@ -5,6 +5,7 @@
   --karta-san-felix: #113a2a;
   --karta-salem: #2a654e;
   --karta-stone-wall: #979187;
+  --karta-orange: #c2410c;
   --karta-white: #ffffff;
   --builder-bg: var(--karta-san-felix);
   --builder-card: #f8fafc;
@@ -82,7 +83,7 @@ body {
   height: var(--disclaimer-height);
   margin: 6px 0 0 8px;
   padding: 7px 0;
-  color: #b91c1c;
+  color: var(--karta-orange);
   background: transparent;
   border: 0;
   text-align: left;
@@ -587,7 +588,7 @@ body {
 
 .main-page-area {
   display: grid;
-  grid-template-rows: var(--context-bar-height) 1fr;
+  grid-template-rows: var(--context-bar-height) minmax(0, 1fr) auto;
   gap: var(--mockup-row-gap);
   min-width: 0;
   min-height: 0;
@@ -613,6 +614,21 @@ body {
 .canvas {
   height: 1260px;
   min-height: 100%;
+}
+
+.canvas-overflow-warning {
+  margin: 0;
+  padding: 6px 10px;
+  border: 2px dashed rgba(154, 52, 18, 0.82);
+  background: #fff7ed;
+  color: #9a3412;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.canvas-overflow-warning[hidden] {
+  display: none;
 }
 
 .insights {
@@ -1277,10 +1293,12 @@ body {
 .controls button,
 #clear-canvas,
 #export-pdf,
+#export-build-brief,
 #save-page,
 #new-page,
 #duplicate-page,
 #rename-page,
+#page-details,
 #delete-page,
 #export-project,
 #import-project {
@@ -1295,40 +1313,73 @@ body {
   line-height: 1.15;
 }
 
+.output-actions #export-pdf,
+.output-actions #export-build-brief,
+.output-actions #export-project,
+.output-actions #import-project {
+  min-height: 34px;
+  padding: 6px;
+}
+
 .controls button:hover,
 #clear-canvas:hover,
 #export-pdf:hover,
+#export-build-brief:hover,
 #save-page:hover,
 #new-page:hover,
 #duplicate-page:hover,
 #rename-page:hover,
+#page-details:hover,
 #delete-page:hover,
 #export-project:hover,
 #import-project:hover {
   background: rgba(42, 101, 78, 0.08);
 }
 
-#save-page,
-#export-project {
+#save-page {
   background: var(--karta-salem);
   color: var(--karta-white);
   border-color: var(--karta-salem);
 }
 
 #clear-canvas.secondary {
-  background: #fff;
+  background: #fff7ed;
   color: #9a3412;
-  border-color: rgba(194, 65, 12, 0.72);
+  border-color: var(--karta-orange);
 }
 
 #delete-page.danger {
   background: #fff7ed;
   color: #9a3412;
-  border-color: #c2410c;
+  border-color: var(--karta-orange);
 }
 
 .output-section {
   background: rgba(17, 58, 42, 0.04);
+}
+
+.output-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.output-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.output-actions img {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+}
+
+.output-actions span {
+  overflow-wrap: anywhere;
 }
 
 .widget-details-modal {
@@ -1383,7 +1434,8 @@ body {
   resize: vertical;
 }
 
-#close-details-modal {
+#close-details-modal,
+#close-page-details-modal {
   width: 28px;
   height: 28px;
   border: 1px solid var(--ink);

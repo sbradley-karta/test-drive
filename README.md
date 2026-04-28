@@ -34,6 +34,7 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 - Adds direct 16:9 landscape PDF export from Builder Controls for the UX mockup frame.
 - Hides workshop-only controls from PDF export so the artifact stays clean.
 - Supports local multi-page projects with browser persistence and manual JSON import/export.
+- Exports a whole-project **Page Build Brief CSV** for solution architect to model builder handoff.
 - Adds light Karta-branded Builder Controls using the v0.1.8 brand palette.
 - Adds a Logo Placeholder card for client or page-level logo placement.
 - Uses the UX shell page selector as the saved-page navigation menu.
@@ -76,9 +77,22 @@ v0.1.8 keeps the app static and local-first while adding enough persistence for 
 
 ### Sharing editable work
 
-Use **Export Project JSON** to download the full editable project. Send that file to another user, then have them choose **Import Project JSON**. Imported data stays local to that user's browser.
+Use **Export JSON** to download the full editable project. Send that file to another user, then have them choose **Import JSON**. Imported data stays local to that user's browser.
 
 Malformed or unrelated JSON files are rejected without replacing the current project.
+
+## v0.1.9 build handoff export
+
+v0.1.9 adds a structured CSV handoff that translates saved page and card metadata into a Page Build Brief.
+
+- Adds Page Details for functional area, persona, and page purpose.
+- Adds card-level inputs and outputs to Card Build Details.
+- Adds **Export Build Brief CSV** under Outputs.
+- Exports one row per card across the whole project with page context, global selectors, card metadata, open questions, and build notes.
+- Adds compact icon buttons for **Export UX PDF**, **Export JSON**, and **Import JSON**.
+- Adds a visible warning when cards extend below the visible UX canvas.
+- Aligns destructive and disclaimer styling with Karta orange.
+- Keeps the app static and dependency-free by using native browser CSV generation.
 
 ## Fastest way to view in your browser
 
@@ -140,7 +154,7 @@ Open:
 http://localhost:8000
 ```
 
-For laptop distribution in v0.1.8, share this static app folder and have each user run the same local preview command from the folder. Electron and Tauri packaging are intentionally deferred until the team confirms native installers are needed.
+For laptop distribution in v0.1.9, share this static app folder and have each user run the same local preview command from the folder. Electron and Tauri packaging are intentionally deferred until the team confirms native installers are needed.
 
 ## Workshop usage tips
 
@@ -155,5 +169,8 @@ For laptop distribution in v0.1.8, share this static app folder and have each us
 9. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
 10. Double-click a checkbox cell to return it to editable text.
 11. Use `Save Page` or rely on browser auto-save before switching pages.
-12. Use `Export Project JSON` when you need to share editable work.
-13. Use this as alignment artifact, not final UI specification.
+12. Use `Page Details` to capture page-level handoff context.
+13. Use `Export Build Brief CSV` to hand off structured page/card build notes.
+14. Watch for the visible canvas warning when cards are placed below the currently visible UX page area.
+15. Use `Export JSON` when you need to share editable work.
+16. Use this as alignment artifact, not final UI specification.

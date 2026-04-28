@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Import">
+  <path d="M12 3v10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="m8 9 4 4 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M5 12v6a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>
