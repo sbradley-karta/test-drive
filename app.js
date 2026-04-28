@@ -73,6 +73,7 @@ let activeDetailsWidget = null;
 let project = null;
 let isRestoring = false;
 let saveTimer = null;
+let activeGridCell = null;
 const APP_VERSION = "0.1.9";
 const STORAGE_KEY = "karta-anaplan-mockup-project-v018";
 const GRID_SIZE = 14;
@@ -618,6 +619,7 @@ function createWidget(type) {
 function wireWidget(widget, isInsightsDestination) {
   setupWidgetChrome(widget);
   setupGridControls(widget);
+  setupGridPasteSupport(widget);
   setupGridCheckboxConversion(widget);
   makeDraggable(widget, isInsightsDestination ? insightsCanvas : canvas, isInsightsDestination);
   makeResizable(widget, isInsightsDestination ? insightsCanvas : canvas, isInsightsDestination);
@@ -847,10 +849,9 @@ function prepareInsightsWidget(widget) {
   if (header) header.style.marginBottom = "6px";
 }
 
-function addHeaderFilter(label = "Filter", value = "Value") {
+function addHeaderFilter(label = "Filter") {
   const chip = headerFilterTemplate.content.firstElementChild.cloneNode(true);
   chip.querySelector(".filter-label").textContent = label;
-  chip.querySelector(".filter-value").textContent = value;
   chip.querySelector(".remove-filter").addEventListener("click", () => {
     chip.remove();
     updateHeaderFilterState();
@@ -1015,6 +1016,156 @@ function setupGridControls(widget) {
   });
 }
 
+function setupGridPasteSupport(widget) {
+  const table = widget.querySelector(".grid-table");
+  if (!table) return;
+
+  table.addEventListener("click", (event) => {
+    setActiveGridCell(event.target.closest("th, td"));
+  });
+
+  table.addEventListener("focusin", (event) => {
+    setActiveGridCell(event.target.closest("th, td"));
+  });
+
+  table.addEventListener("paste", (event) => {
+    const cell = event.target.closest("th, td") || activeGridCell;
+    if (!cell || !table.contains(cell)) return;
+
+    const clipboardText = event.clipboardData?.getData("text/plain") || "";
+    if (!clipboardText) return;
+
+    const pastedGrid = parseSpreadsheetPaste(clipboardText);
+
+    event.preventDefault();
+    if (isMultiCellPaste(pastedGrid)) {
+      pasteSpreadsheetRange(table, cell, pastedGrid);
+    } else {
+      setGridCellValue(cell, pastedGrid[0]?.[0] || "", cell.tagName.toLowerCase() === "td");
+    }
+    setActiveGridCell(cell);
+    saveActivePageNow();
+  });
+}
+
+function setActiveGridCell(cell) {
+  if (!cell || !cell.matches("th, td")) return;
+  if (activeGridCell && activeGridCell !== cell) {
+    activeGridCell.classList.remove("active-grid-cell");
+  }
+  activeGridCell = cell;
+  activeGridCell.classList.add("active-grid-cell");
+}
+
+function clearActiveGridCell() {
+  if (activeGridCell) activeGridCell.classList.remove("active-grid-cell");
+  activeGridCell = null;
+}
+
+function parseSpreadsheetPaste(text) {
+  const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const rows = normalized.split("\n");
+  if (rows.length > 1 && rows[rows.length - 1] === "") rows.pop();
+  return rows.map((row) => row.split("\t"));
+}
+
+function isMultiCellPaste(rows) {
+  return rows.length > 1 || rows.some((row) => row.length > 1);
+}
+
+function pasteSpreadsheetRange(table, startCell, rows) {
+  const headerRow = table.querySelector("thead tr");
+  const body = table.querySelector("tbody");
+  if (!headerRow || !body || !rows.length) return;
+
+  const startColumnIndex = startCell.cellIndex;
+  const maxPastedColumns = rows.reduce((max, row) => Math.max(max, row.length), 0);
+  ensureGridColumnCount(table, startColumnIndex + maxPastedColumns);
+
+  if (startCell.tagName.toLowerCase() === "th") {
+    rows.forEach((row, rowIndex) => {
+      if (rowIndex === 0) {
+        row.forEach((value, columnOffset) => {
+          setGridCellValue(headerRow.cells[startColumnIndex + columnOffset], value, false);
+        });
+        return;
+      }
+
+      const bodyRow = ensureGridBodyRow(body, rowIndex - 1);
+      row.forEach((value, columnOffset) => {
+        setGridCellValue(bodyRow.cells[startColumnIndex + columnOffset], value, true);
+      });
+    });
+    return;
+  }
+
+  const startRowIndex = startCell.parentElement.sectionRowIndex;
+  rows.forEach((row, rowOffset) => {
+    const bodyRow = ensureGridBodyRow(body, startRowIndex + rowOffset);
+    row.forEach((value, columnOffset) => {
+      setGridCellValue(bodyRow.cells[startColumnIndex + columnOffset], value, true);
+    });
+  });
+}
+
+function ensureGridColumnCount(table, columnCount) {
+  const headerRow = table.querySelector("thead tr");
+  const body = table.querySelector("tbody");
+  if (!headerRow || !body) return;
+
+  while (headerRow.cells.length < columnCount) {
+    const header = document.createElement("th");
+    header.contentEditable = "true";
+    header.textContent = `Col ${headerRow.cells.length + 1}`;
+    headerRow.appendChild(header);
+
+    Array.from(body.rows).forEach((row) => {
+      const cell = row.insertCell();
+      setGridCellValue(cell, "0", true);
+    });
+  }
+}
+
+function ensureGridBodyRow(body, rowIndex) {
+  const table = body.closest("table");
+  const columnCount = table?.querySelector("thead tr")?.cells.length || 1;
+
+  while (body.rows.length <= rowIndex) {
+    const row = body.insertRow();
+    for (let i = 0; i < columnCount; i += 1) {
+      const cell = row.insertCell();
+      setGridCellValue(cell, i === 0 ? "New Item" : "0", true);
+    }
+  }
+
+  return body.rows[rowIndex];
+}
+
+function setGridCellValue(cell, value, allowCheckboxConversion) {
+  if (!cell) return;
+
+  const normalizedValue = String(value ?? "");
+  cell.classList.remove("checkbox-cell");
+  cell.contentEditable = "true";
+  cell.textContent = normalizedValue;
+
+  if (allowCheckboxConversion && normalizedValue.trim().toLowerCase() === "x") {
+    convertGridCellToCheckbox(cell);
+  }
+}
+
+function convertGridCellToCheckbox(cell) {
+  cell.textContent = "";
+  cell.contentEditable = "false";
+  cell.classList.add("checkbox-cell");
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = true;
+  checkbox.className = "grid-cell-checkbox";
+  cell.appendChild(checkbox);
+}
+
 function setupGridCheckboxConversion(widget) {
   const table = widget.querySelector(".grid-table");
   if (!table) return;
@@ -1024,15 +1175,7 @@ function setupGridCheckboxConversion(widget) {
     if (!cell || cell.querySelector(".grid-cell-checkbox")) return;
 
     if (cell.textContent.trim().toLowerCase() === "x") {
-      cell.textContent = "";
-      cell.contentEditable = "false";
-      cell.classList.add("checkbox-cell");
-
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = true;
-      checkbox.className = "grid-cell-checkbox";
-      cell.appendChild(checkbox);
+      convertGridCellToCheckbox(cell);
       saveActivePageNow();
     }
   });
@@ -1087,6 +1230,10 @@ function updateGrid(widget, action) {
   if (action === "remove-column" && columnCount > 1) {
     headerRow.deleteCell(columnCount - 1);
     rows.forEach((row) => row.deleteCell(columnCount - 1));
+  }
+
+  if (activeGridCell && !table.contains(activeGridCell)) {
+    activeGridCell = null;
   }
 }
 
@@ -1267,7 +1414,7 @@ function captureCurrentPage() {
     },
     headerFilters: Array.from(contextFilterRow.querySelectorAll(".header-filter")).map((filter) => ({
       label: filter.querySelector(".filter-label")?.textContent.trim() || "Filter",
-      value: filter.querySelector(".filter-value")?.textContent.trim() || "Value",
+      value: "",
     })),
     insightsHidden: insights.classList.contains("hidden"),
     nextCounter: counter,
@@ -1294,15 +1441,27 @@ function serializeCards(container) {
       },
       headerHTML: header?.innerHTML || "",
       headerEditable: header?.getAttribute("contenteditable") || "",
-      contentHTML: widget.querySelector(".widget-content")?.innerHTML || "",
+      contentHTML: getSerializableWidgetContentHTML(widget),
       metadata: getWidgetMetadata(widget),
     };
   });
 }
 
+function getSerializableWidgetContentHTML(widget) {
+  const content = widget.querySelector(".widget-content");
+  if (!content) return "";
+
+  const clone = content.cloneNode(true);
+  clone.querySelectorAll(".active-grid-cell").forEach((cell) => {
+    cell.classList.remove("active-grid-cell");
+  });
+  return clone.innerHTML;
+}
+
 function restorePage(page) {
   isRestoring = true;
   activeDetailsWidget = null;
+  clearActiveGridCell();
   canvas.innerHTML = "";
   insightsCanvas.innerHTML = "";
   contextFilterRow.innerHTML = "";
@@ -1318,7 +1477,7 @@ function restorePage(page) {
   insightsTitle.textContent = page.shell?.insightsTitle || "Additional Insights";
   setInsightsHidden(Boolean(page.insightsHidden));
 
-  (page.headerFilters || []).forEach((filter) => addHeaderFilter(filter.label, filter.value));
+  (page.headerFilters || []).forEach((filter) => addHeaderFilter(filter.label || filter.value));
   restoreCards(canvas, page.mainCards || [], false);
   restoreCards(insightsCanvas, page.insightCards || [], true);
 
@@ -1343,6 +1502,9 @@ function restoreCards(container, cards, isInsightsDestination) {
       if (card.headerEditable) header.setAttribute("contenteditable", card.headerEditable);
     }
     widget.querySelector(".widget-content").innerHTML = card.contentHTML || "";
+    widget.querySelectorAll(".active-grid-cell").forEach((cell) => {
+      cell.classList.remove("active-grid-cell");
+    });
     setupWidgetMetadata(widget, card.metadata);
     container.appendChild(widget);
 

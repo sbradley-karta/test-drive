@@ -30,7 +30,7 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 - Adds visible three-dot drag handles on cards for clear move affordance.
 - Snaps main canvas cards to grid when added, moved, or resized.
 - Prevents overlapping cards in the Main Canvas and preserves standard spacing from other cards and canvas edges.
-- Supports editable grid headers and cells, inline row/column add/remove controls, tighter cell padding, simple `x` to checkbox conversion on grid cells, and double-click checkbox reversal back to editable text.
+- Supports editable grid headers and cells, active-cell spreadsheet paste, inline row/column add/remove controls, tighter cell padding, simple `x` to checkbox conversion on grid cells, and double-click checkbox reversal back to editable text.
 - Supports a vertically scrollable Main Canvas for larger workshop sketches while preserving the fixed export frame.
 - Adds direct 16:9 landscape PDF export from Builder Controls for the UX mockup frame.
 - Hides workshop-only controls from PDF export so the artifact stays clean.
@@ -168,13 +168,14 @@ For laptop distribution in v0.1.9, share this static app folder and have each us
 6. Use the Cards segmented control to choose Main Canvas or Additional Insights before adding cards.
 7. Hover or focus the second header row and use the small `+` button to add context filters.
 8. Use the shelf icon in the second header row to expand or collapse Additional Insights.
-9. Hover or focus a grid card to reveal row/column editing controls.
-10. Hover or focus full cards to add local filter chips or open card build details.
-11. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
-12. Double-click a checkbox cell to return it to editable text.
-13. Use `Save Page` or rely on browser auto-save before switching pages.
-14. Use `Page Details` to capture page-level handoff context.
-15. Use `Export Build Brief CSV` to hand off structured page/card build notes.
-16. Watch for the visible canvas warning when cards are placed below the currently visible UX page area.
-17. Use `Export JSON` when you need to share editable work.
-18. Use this as alignment artifact, not final UI specification.
+9. Click a grid cell to set the active paste anchor, then paste copied spreadsheet ranges directly into the grid.
+10. Hover or focus a grid card to reveal row/column editing controls.
+11. Hover or focus full cards to add local filter chips or open card build details.
+12. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
+13. Double-click a checkbox cell to return it to editable text.
+14. Use `Save Page` or rely on browser auto-save before switching pages.
+15. Use `Page Details` to capture page-level handoff context.
+16. Use `Export Build Brief CSV` to hand off structured page/card build notes.
+17. Watch for the visible canvas warning when cards are placed below the currently visible UX page area.
+18. Use `Export JSON` when you need to share editable work.
+19. Use this as alignment artifact, not final UI specification.
