@@ -33,6 +33,10 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 - Supports a vertically scrollable Main Canvas for larger workshop sketches while preserving the fixed export frame.
 - Adds direct 16:9 landscape PDF export from Builder Controls for the UX mockup frame.
 - Hides workshop-only controls from PDF export so the artifact stays clean.
+- Supports local multi-page projects with browser persistence and manual JSON import/export.
+- Adds light Karta-branded Builder Controls using the v0.1.8 brand palette.
+- Adds a Logo Placeholder card for client or page-level logo placement.
+- Uses the UX shell page selector as the saved-page navigation menu.
 
 ## v0.1.6 workshop enhancements
 
@@ -50,6 +54,31 @@ v0.1.7 aligns the workshop vocabulary with Anaplan card terminology.
 - User-facing references now use "card" instead of "widget."
 - The simple text control is labeled `+ Title/Header`.
 - Grid-cell checkboxes can be reversed by double-clicking the checkbox cell, which restores an editable blank text cell.
+
+## v0.1.8 lightweight project saves
+
+v0.1.8 keeps the app static and local-first while adding enough persistence for individual workshop use.
+
+- Saves a local multi-page project in the browser using `localStorage`.
+- Uses the Anaplan-style page selector in the top UX shell row to switch between saved pages.
+- Keeps Builder Controls focused on page actions: save, create, duplicate, rename, and delete.
+- Exports and imports one JSON project file so users can manually share editable mockups.
+- Keeps PDF export scoped to the active page.
+- Uses a compact Karta icon in the Builder Controls header.
+- Adds light Karta branding to the Builder Controls only, using:
+  - San Felix `#113A2A`
+  - Salem `#2A654E`
+  - Stone Wall `#979187`
+  - White `#FFFFFF`
+- Adds a `+ Logo` card that creates an editable `Client Logo` placeholder.
+- Hides card-level filter controls on compact cards where filters do not apply: Button, Checkbox, Title/Header, and Logo.
+- Replaces browser prompt-based page renaming with an in-app rename dialog.
+
+### Sharing editable work
+
+Use **Export Project JSON** to download the full editable project. Send that file to another user, then have them choose **Import Project JSON**. Imported data stays local to that user's browser.
+
+Malformed or unrelated JSON files are rejected without replacing the current project.
 
 ## Fastest way to view in your browser
 
@@ -111,14 +140,20 @@ Open:
 http://localhost:8000
 ```
 
+For laptop distribution in v0.1.8, share this static app folder and have each user run the same local preview command from the folder. Electron and Tauri packaging are intentionally deferred until the team confirms native installers are needed.
+
 ## Workshop usage tips
 
 1. Keep the Builder Controls pane for facilitator actions only.
-2. Hover or focus the second header row and use the small `+` button to add context filters.
-3. Use Builder Controls for Main Canvas and Additional Insights cards only.
-4. Use the shelf icon in the second header row to expand or collapse Additional Insights.
-5. Hover or focus a grid card to reveal row/column editing controls.
-6. Hover or focus any card to add local filter chips or open card build details.
-7. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
-8. Double-click a checkbox cell to return it to editable text.
-9. Use this as alignment artifact, not final UI specification.
+2. Use the top shell page selector to switch between saved pages.
+3. Use Builder Controls to save, create, duplicate, rename, and delete pages.
+4. Use the Cards segmented control to choose Main Canvas or Additional Insights before adding cards.
+5. Hover or focus the second header row and use the small `+` button to add context filters.
+6. Use the shelf icon in the second header row to expand or collapse Additional Insights.
+7. Hover or focus a grid card to reveal row/column editing controls.
+8. Hover or focus full cards to add local filter chips or open card build details.
+9. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
+10. Double-click a checkbox cell to return it to editable text.
+11. Use `Save Page` or rely on browser auto-save before switching pages.
+12. Use `Export Project JSON` when you need to share editable work.
+13. Use this as alignment artifact, not final UI specification.

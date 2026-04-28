@@ -4,6 +4,7 @@ const insightsCanvas = document.getElementById("insights-canvas");
 const template = document.getElementById("widget-template");
 const headerFilterTemplate = document.getElementById("header-filter-template");
 const targetArea = document.getElementById("target-area");
+const targetAreaChoices = document.querySelectorAll('input[name="target-area-choice"]');
 const toggleInsights = document.getElementById("toggle-insights");
 const pageBody = document.querySelector(".page-body");
 const contextFilterRow = document.getElementById("context-filter-row");
@@ -15,6 +16,27 @@ const detailsModal = document.getElementById("widget-details-modal");
 const closeDetailsModal = document.getElementById("close-details-modal");
 const cancelDetails = document.getElementById("cancel-details");
 const saveDetails = document.getElementById("save-details");
+const renamePageModal = document.getElementById("rename-page-modal");
+const closeRenamePageModal = document.getElementById("close-rename-page-modal");
+const cancelRenamePage = document.getElementById("cancel-rename-page");
+const saveRenamePage = document.getElementById("save-rename-page");
+const renamePageInput = document.getElementById("rename-page-input");
+const pageSelect = document.getElementById("page-select");
+const shellPageMenuButton = document.getElementById("shell-page-menu-button");
+const shellPageMenu = document.getElementById("shell-page-menu");
+const savePageBtn = document.getElementById("save-page");
+const newPageBtn = document.getElementById("new-page");
+const duplicatePageBtn = document.getElementById("duplicate-page");
+const renamePageBtn = document.getElementById("rename-page");
+const deletePageBtn = document.getElementById("delete-page");
+const exportProjectBtn = document.getElementById("export-project");
+const importProjectBtn = document.getElementById("import-project");
+const importProjectFile = document.getElementById("import-project-file");
+const shellAppName = document.querySelector(".shell-app-selector .shell-editable");
+const shellPageName = document.querySelector(".shell-page-selector .shell-editable");
+const workspaceName = document.querySelector(".workspace-selector span:first-child");
+const pageTitle = document.querySelector(".left-context");
+const insightsTitle = document.querySelector(".insights h3");
 const detailFields = {
   purpose: document.getElementById("detail-purpose"),
   source: document.getElementById("detail-source"),
@@ -28,6 +50,11 @@ const detailFields = {
 let z = 5;
 let counter = 1;
 let activeDetailsWidget = null;
+let project = null;
+let isRestoring = false;
+let saveTimer = null;
+const APP_VERSION = "0.1.8";
+const STORAGE_KEY = "karta-anaplan-mockup-project-v018";
 const GRID_SIZE = 14;
 const CANVAS_GAP = GRID_SIZE;
 const MIN_WIDGET_WIDTH = 168;
@@ -36,27 +63,40 @@ const MIN_COMPACT_WIDGET_HEIGHT = 42;
 const EXPANDED_CANVAS_HEIGHT = 1260;
 const EXPORT_WIDTH = 1600;
 const EXPORT_HEIGHT = 900;
+const DEFAULT_PAGE_PATH = "[Category Name] / [Page Name]";
 
 document.querySelectorAll(".controls button[data-widget]").forEach((btn) => {
   btn.addEventListener("click", () => addWidget(btn.dataset.widget));
 });
 
+targetAreaChoices.forEach((choice) => {
+  choice.addEventListener("change", () => {
+    if (!choice.checked) return;
+    targetArea.value = choice.value;
+  });
+});
+
 document.getElementById("clear-canvas").addEventListener("click", () => {
+  if (!confirm("Clear all cards and header filters on this page?")) return;
   canvas.innerHTML = "";
   insightsCanvas.innerHTML = "";
   contextFilterRow.innerHTML = "";
   updateHeaderFilterState();
   counter = 1;
+  z = 5;
+  saveActivePageNow();
 });
 
 exportPdfBtn.addEventListener("click", exportUxToPdf);
-
-addHeaderFilterButton.addEventListener("click", addHeaderFilter);
-
+addHeaderFilterButton.addEventListener("click", () => addHeaderFilter());
 closeDetailsModal.addEventListener("click", closeWidgetDetailsModal);
 cancelDetails.addEventListener("click", closeWidgetDetailsModal);
 detailsModal.addEventListener("cancel", closeWidgetDetailsModal);
 saveDetails.addEventListener("click", saveWidgetDetails);
+closeRenamePageModal.addEventListener("click", closeRenamePageDialog);
+cancelRenamePage.addEventListener("click", closeRenamePageDialog);
+renamePageModal.addEventListener("cancel", closeRenamePageDialog);
+saveRenamePage.addEventListener("click", saveRenamePageName);
 
 builderToggle.addEventListener("click", () => {
   const collapsed = appShell.classList.toggle("builder-collapsed");
@@ -66,16 +106,160 @@ builderToggle.addEventListener("click", () => {
 
 toggleInsights.addEventListener("click", () => {
   const nowHidden = !insights.classList.contains("hidden");
-  insights.classList.toggle("hidden", nowHidden);
-  pageBody.classList.toggle("insights-hidden", nowHidden);
-  toggleInsights.setAttribute("aria-pressed", String(!nowHidden));
-  toggleInsights.setAttribute("aria-label", nowHidden ? "Expand Additional Insights" : "Collapse Additional Insights");
-  toggleInsights.setAttribute("title", nowHidden ? "Expand Additional Insights" : "Collapse Additional Insights");
+  setInsightsHidden(nowHidden);
 
   if (nowHidden && targetArea.value === "insights") {
     targetArea.value = "canvas";
+    syncTargetAreaChoices();
+  }
+
+  scheduleAutoSave();
+});
+
+savePageBtn.addEventListener("click", () => {
+  saveActivePageNow();
+  savePageBtn.textContent = "Saved";
+  window.setTimeout(() => {
+    savePageBtn.textContent = "Save Page";
+  }, 900);
+});
+
+if (pageSelect) {
+  pageSelect.addEventListener("change", () => {
+    switchToPage(pageSelect.value);
+  });
+}
+
+shellPageMenuButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  toggleShellPageMenu();
+});
+
+shellPageMenu.addEventListener("click", (event) => {
+  const item = event.target.closest("[data-page-id]");
+  if (!item) return;
+  switchToPage(item.dataset.pageId);
+  closeShellPageMenu();
+});
+
+document.addEventListener("click", (event) => {
+  if (event.target.closest(".shell-page-selector")) return;
+  closeShellPageMenu();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeShellPageMenu();
+});
+
+newPageBtn.addEventListener("click", () => {
+  saveActivePageNow();
+  const page = createDefaultPage(getUniquePageName("New Page"));
+  project.pages.push(page);
+  project.activePageId = page.id;
+  renderPageSelect();
+  restorePage(page);
+  persistProject();
+});
+
+duplicatePageBtn.addEventListener("click", () => {
+  saveActivePageNow();
+  const source = getActivePage();
+  const copy = structuredCloneSafe(source);
+  copy.id = createId("page");
+  copy.name = getUniquePageName(`${source.name || "Page"} Copy`);
+  copy.updatedAt = new Date().toISOString();
+  project.pages.push(copy);
+  project.activePageId = copy.id;
+  renderPageSelect();
+  restorePage(copy);
+  persistProject();
+});
+
+renamePageBtn.addEventListener("click", () => {
+  const page = getActivePage();
+  renamePageInput.value = page.name || "Untitled Page";
+  if (typeof renamePageModal.showModal === "function") {
+    renamePageModal.showModal();
+    renamePageInput.select();
+  } else {
+    renamePageModal.setAttribute("open", "");
+    renamePageInput.focus();
   }
 });
+
+deletePageBtn.addEventListener("click", () => {
+  if (project.pages.length <= 1) {
+    alert("Keep at least one page in the project.");
+    return;
+  }
+
+  const page = getActivePage();
+  if (!confirm(`Delete "${page.name}" from this local project?`)) return;
+
+  project.pages = project.pages.filter((candidate) => candidate.id !== page.id);
+  project.activePageId = project.pages[0].id;
+  renderPageSelect();
+  restorePage(getActivePage());
+  persistProject();
+});
+
+exportProjectBtn.addEventListener("click", () => {
+  saveActivePageNow();
+  const blob = new Blob([JSON.stringify(project, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${slugify(project.name || "mockup-project")}-v${APP_VERSION}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+importProjectBtn.addEventListener("click", () => {
+  importProjectFile.click();
+});
+
+importProjectFile.addEventListener("change", () => {
+  const [file] = importProjectFile.files;
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const imported = normalizeProject(JSON.parse(reader.result));
+      project = imported;
+      renderPageSelect();
+      restorePage(getActivePage());
+      persistProject();
+    } catch (error) {
+      alert("Import failed. Choose a valid mockup project JSON file.");
+      console.error(error);
+    } finally {
+      importProjectFile.value = "";
+    }
+  });
+  reader.readAsText(file);
+});
+
+document.addEventListener("input", (event) => {
+  if (isRestoring) return;
+  if (event.target.closest(".mockup-frame")) {
+    scheduleAutoSave();
+    if (event.target === pageTitle || event.target === shellPageName) {
+      syncActivePageName();
+    }
+  }
+});
+
+document.addEventListener("change", (event) => {
+  if (isRestoring) return;
+  if (event.target.closest(".mockup-frame")) {
+    scheduleAutoSave();
+  }
+});
+
+window.addEventListener("beforeunload", saveActivePageNow);
+
+initProject();
 
 async function exportUxToPdf() {
   const frame = document.querySelector(".mockup-frame");
@@ -108,7 +292,7 @@ async function exportUxToPdf() {
     });
 
     pdf.addImage(canvasImage.toDataURL("image/png"), "PNG", 0, 0, EXPORT_WIDTH, EXPORT_HEIGHT);
-    pdf.save("anaplan-mockup.pdf");
+    pdf.save(`${slugify(getActivePage()?.name || "anaplan-mockup")}.pdf`);
   } catch (error) {
     alert("PDF export failed. Please try again.");
     console.error(error);
@@ -123,14 +307,36 @@ function addWidget(type) {
   const destination = getDestination();
   if (!destination) return;
 
-  const widget = template.content.firstElementChild.cloneNode(true);
-  widget.dataset.type = type;
-  widget.dataset.widgetId = `widget-${counter}`;
+  const widget = createWidget(type);
   const width = snapToGrid(getDefaultWidth(type));
   const height = snapToGrid(getDefaultHeight(type));
   widget.style.width = `${width}px`;
   widget.style.height = `${height}px`;
   widget.style.zIndex = ++z;
+  wireWidget(widget, destination === insightsCanvas);
+  destination.appendChild(widget);
+
+  const isInsightsDestination = destination === insightsCanvas;
+  if (isInsightsDestination) {
+    prepareInsightsWidget(widget);
+  } else {
+    const position = findOpenPosition(destination, widget, width, height);
+    if (!position) {
+      widget.remove();
+      alert("There is not enough open space in the main canvas for that card.");
+      return;
+    }
+    applyRect(widget, position);
+  }
+
+  counter += 1;
+  saveActivePageNow();
+}
+
+function createWidget(type) {
+  const widget = template.content.firstElementChild.cloneNode(true);
+  widget.dataset.type = type;
+  widget.dataset.widgetId = `widget-${counter}`;
 
   const title = widget.querySelector(".widget-header");
   const content = widget.querySelector(".widget-content");
@@ -140,7 +346,7 @@ function addWidget(type) {
     content.innerHTML = `
       <div class="kpi">
         <div class="value" contenteditable="true">$1.42M</div>
-        <div class="delta" contenteditable="true">▲ +8.4% vs Plan</div>
+        <div class="delta" contenteditable="true">+8.4% vs Plan</div>
         <div contenteditable="true">Driver: Enterprise Wins</div>
       </div>
     `;
@@ -169,8 +375,6 @@ function addWidget(type) {
         </tbody>
       </table>
     `;
-    setupGridControls(widget);
-    setupGridCheckboxConversion(widget);
   }
 
   if (type === "chart") {
@@ -231,30 +435,30 @@ function addWidget(type) {
     widget.classList.add("textbox-widget");
   }
 
-  setupWidgetMetadata(widget);
-  setupWidgetChrome(widget);
-
-  destination.appendChild(widget);
-
-  const isInsightsDestination = destination === insightsCanvas;
-  if (isInsightsDestination) {
-    prepareInsightsWidget(widget);
-  } else {
-    const position = findOpenPosition(destination, widget, width, height);
-    if (!position) {
-      widget.remove();
-      alert("There is not enough open space in the main canvas for that card.");
-      return;
-    }
-    applyRect(widget, position);
+  if (type === "logo") {
+    title.remove();
+    content.innerHTML = `
+      <div class="logo-placeholder-card" contenteditable="true">
+        <span>Client Logo</span>
+      </div>
+    `;
+    widget.classList.add("logo-widget");
   }
 
-  makeDraggable(widget, destination, isInsightsDestination);
-  makeResizable(widget, destination, isInsightsDestination);
-  counter += 1;
+  setupWidgetMetadata(widget);
+  return widget;
 }
 
-function setupWidgetMetadata(widget) {
+function wireWidget(widget, isInsightsDestination) {
+  setupWidgetChrome(widget);
+  setupGridControls(widget);
+  setupGridCheckboxConversion(widget);
+  makeDraggable(widget, isInsightsDestination ? insightsCanvas : canvas, isInsightsDestination);
+  makeResizable(widget, isInsightsDestination ? insightsCanvas : canvas, isInsightsDestination);
+  updateWidgetMetadataState(widget);
+}
+
+function setupWidgetMetadata(widget, metadata = null) {
   widget._buildMetadata = {
     purpose: "",
     source: "",
@@ -264,12 +468,14 @@ function setupWidgetMetadata(widget) {
     openQuestions: "",
     notes: "",
     filters: [],
+    ...(metadata || {}),
   };
 }
 
 function setupWidgetChrome(widget) {
   widget.querySelector(".remove").addEventListener("click", () => {
     widget.remove();
+    saveActivePageNow();
   });
 
   widget.querySelector(".details").addEventListener("click", (event) => {
@@ -307,6 +513,28 @@ function closeWidgetDetailsModal() {
   }
 }
 
+function closeRenamePageDialog() {
+  if (renamePageModal.open) {
+    renamePageModal.close();
+  } else {
+    renamePageModal.removeAttribute("open");
+  }
+}
+
+function saveRenamePageName(event) {
+  event.preventDefault();
+  const page = getActivePage();
+  const nextName = renamePageInput.value.trim();
+  if (!nextName) return;
+
+  page.name = nextName;
+  pageTitle.textContent = nextName;
+  shellPageName.textContent = nextName;
+  saveActivePageNow();
+  renderPageSelect();
+  closeRenamePageDialog();
+}
+
 function saveWidgetDetails(event) {
   event.preventDefault();
   if (!activeDetailsWidget) return;
@@ -318,6 +546,7 @@ function saveWidgetDetails(event) {
 
   updateWidgetMetadataState(activeDetailsWidget);
   closeWidgetDetailsModal();
+  saveActivePageNow();
 }
 
 function getWidgetMetadata(widget) {
@@ -338,21 +567,25 @@ function addWidgetFilter(widget, name = "Filter") {
   const chip = document.createElement("span");
   chip.className = "widget-filter-chip";
   chip.innerHTML = `
-    <span class="widget-filter-name" contenteditable="true">${name}</span>
+    <span class="widget-filter-name" contenteditable="true"></span>
     <button class="remove-widget-filter" type="button" aria-label="Remove widget filter">×</button>
   `;
+  chip.querySelector(".widget-filter-name").textContent = name;
 
   chip.querySelector(".remove-widget-filter").addEventListener("click", () => {
     chip.remove();
     syncWidgetFilters(widget);
+    saveActivePageNow();
   });
 
   chip.querySelector(".widget-filter-name").addEventListener("input", () => {
     syncWidgetFilters(widget);
+    scheduleAutoSave();
   });
 
   list.appendChild(chip);
   syncWidgetFilters(widget);
+  saveActivePageNow();
 }
 
 function syncWidgetFilters(widget) {
@@ -375,14 +608,18 @@ function prepareInsightsWidget(widget) {
   if (header) header.style.marginBottom = "6px";
 }
 
-function addHeaderFilter() {
+function addHeaderFilter(label = "Filter", value = "Value") {
   const chip = headerFilterTemplate.content.firstElementChild.cloneNode(true);
+  chip.querySelector(".filter-label").textContent = label;
+  chip.querySelector(".filter-value").textContent = value;
   chip.querySelector(".remove-filter").addEventListener("click", () => {
     chip.remove();
     updateHeaderFilterState();
+    saveActivePageNow();
   });
   contextFilterRow.appendChild(chip);
   updateHeaderFilterState();
+  saveActivePageNow();
 }
 
 function updateHeaderFilterState() {
@@ -392,7 +629,7 @@ function updateHeaderFilterState() {
 function getDestination() {
   if (targetArea.value === "insights") {
     if (insights.classList.contains("hidden")) {
-      alert("Additional Insights is hidden. Turn it on to place widgets there.");
+      alert("Additional Insights is hidden. Turn it on to place cards there.");
       return null;
     }
     return insightsCanvas;
@@ -402,21 +639,23 @@ function getDestination() {
 
 function getDefaultWidth(type) {
   if (type === "kpi") return 224;
-  if (type === "button") return 182;
+  if (type === "button") return 238;
   if (type === "checkbox") return 350;
   if (type === "field") return 300;
-  if (type === "text") return 364;
+  if (type === "text") return 476;
   if (type === "textbox") return 360;
+  if (type === "logo") return 238;
   return 308;
 }
 
 function getDefaultHeight(type) {
   if (type === "kpi") return 168;
-  if (type === "button") return 42;
+  if (type === "button") return 56;
   if (type === "checkbox") return 56;
   if (type === "field") return 104;
-  if (type === "text") return 42;
+  if (type === "text") return 56;
   if (type === "textbox") return 154;
+  if (type === "logo") return 126;
   return 224;
 }
 
@@ -434,9 +673,7 @@ function makeDraggable(el, container, isInsightsDestination) {
   let dragging = false;
 
   handle.addEventListener("mousedown", (e) => {
-    if (isInsightsDestination) {
-      return;
-    }
+    if (isInsightsDestination) return;
 
     dragging = true;
     startX = e.clientX;
@@ -450,11 +687,7 @@ function makeDraggable(el, container, isInsightsDestination) {
   });
 
   window.addEventListener("mousemove", (e) => {
-    if (!dragging) return;
-
-    if (isInsightsDestination) {
-      return;
-    }
+    if (!dragging || isInsightsDestination) return;
 
     const nextRect = {
       x: snapToGrid(baseX + (e.clientX - startX)),
@@ -472,6 +705,7 @@ function makeDraggable(el, container, isInsightsDestination) {
   });
 
   window.addEventListener("mouseup", () => {
+    if (dragging) saveActivePageNow();
     dragging = false;
     document.body.style.userSelect = "";
   });
@@ -479,9 +713,7 @@ function makeDraggable(el, container, isInsightsDestination) {
 
 function makeResizable(el, container, isInsightsDestination) {
   const handle = el.querySelector(".resize-handle");
-  if (isInsightsDestination) {
-    return;
-  }
+  if (isInsightsDestination) return;
 
   let startX = 0;
   let startY = 0;
@@ -520,6 +752,7 @@ function makeResizable(el, container, isInsightsDestination) {
   });
 
   window.addEventListener("mouseup", () => {
+    if (resizing) saveActivePageNow();
     resizing = false;
     document.body.style.userSelect = "";
   });
@@ -532,6 +765,7 @@ function setupGridControls(widget) {
       event.preventDefault();
       event.stopPropagation();
       updateGrid(widget, button.dataset.gridAction);
+      saveActivePageNow();
     });
   });
 }
@@ -554,6 +788,7 @@ function setupGridCheckboxConversion(widget) {
       checkbox.checked = true;
       checkbox.className = "grid-cell-checkbox";
       cell.appendChild(checkbox);
+      saveActivePageNow();
     }
   });
 
@@ -565,6 +800,7 @@ function setupGridCheckboxConversion(widget) {
     cell.classList.remove("checkbox-cell");
     cell.contentEditable = "true";
     cell.focus();
+    saveActivePageNow();
   });
 }
 
@@ -607,6 +843,299 @@ function updateGrid(widget, action) {
     headerRow.deleteCell(columnCount - 1);
     rows.forEach((row) => row.deleteCell(columnCount - 1));
   }
+}
+
+function initProject() {
+  project = loadStoredProject();
+  renderPageSelect();
+  restorePage(getActivePage());
+}
+
+function loadStoredProject() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return normalizeProject(JSON.parse(stored));
+  } catch (error) {
+    console.warn("Stored project could not be loaded.", error);
+  }
+  return createDefaultProject();
+}
+
+function createDefaultProject() {
+  const page = createDefaultPage("Page 1");
+  return {
+    version: APP_VERSION,
+    name: "Karta Mockup Project",
+    updatedAt: new Date().toISOString(),
+    activePageId: page.id,
+    pages: [page],
+  };
+}
+
+function createDefaultPage(name) {
+  return {
+    id: createId("page"),
+    name,
+    updatedAt: new Date().toISOString(),
+    shell: {
+      appName: "[App Name]",
+      pagePath: name,
+      workspaceName: "[Workspace Name]",
+      pageTitle: name,
+      insightsTitle: "Additional Insights",
+    },
+    headerFilters: [],
+    insightsHidden: false,
+    nextCounter: 1,
+    nextZ: 5,
+    mainCards: [],
+    insightCards: [],
+  };
+}
+
+function normalizeProject(candidate) {
+  if (!candidate || !Array.isArray(candidate.pages) || candidate.pages.length === 0) {
+    throw new Error("Project JSON does not contain pages.");
+  }
+
+  const pages = candidate.pages.map((page, index) => ({
+    ...createDefaultPage(page.name || `Page ${index + 1}`),
+    ...page,
+    id: page.id || createId("page"),
+    name: page.name || `Page ${index + 1}`,
+    shell: {
+      ...createDefaultPage(page.name || `Page ${index + 1}`).shell,
+      ...(page.shell || {}),
+    },
+    headerFilters: Array.isArray(page.headerFilters) ? page.headerFilters : [],
+    mainCards: Array.isArray(page.mainCards) ? page.mainCards : [],
+    insightCards: Array.isArray(page.insightCards) ? page.insightCards : [],
+  }));
+
+  const activePageId = pages.some((page) => page.id === candidate.activePageId) ? candidate.activePageId : pages[0].id;
+  return {
+    version: APP_VERSION,
+    name: candidate.name || "Karta Mockup Project",
+    updatedAt: candidate.updatedAt || new Date().toISOString(),
+    activePageId,
+    pages,
+  };
+}
+
+function getActivePage() {
+  return project.pages.find((page) => page.id === project.activePageId) || project.pages[0];
+}
+
+function switchToPage(pageId) {
+  if (pageId === project.activePageId) return;
+  saveActivePageNow();
+  project.activePageId = pageId;
+  restorePage(getActivePage());
+  persistProject();
+}
+
+function saveActivePageNow() {
+  if (!project || isRestoring) return;
+  window.clearTimeout(saveTimer);
+  const page = getActivePage();
+  if (!page) return;
+  Object.assign(page, captureCurrentPage());
+  project.updatedAt = new Date().toISOString();
+  persistProject();
+  renderPageSelect();
+}
+
+function scheduleAutoSave() {
+  if (isRestoring) return;
+  window.clearTimeout(saveTimer);
+  saveTimer = window.setTimeout(saveActivePageNow, 250);
+}
+
+function persistProject() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+}
+
+function captureCurrentPage() {
+  const name = getCurrentPageName();
+  return {
+    name,
+    updatedAt: new Date().toISOString(),
+    shell: {
+      appName: shellAppName.textContent.trim() || "[App Name]",
+      pagePath: shellPageName.textContent.trim() || name,
+      workspaceName: workspaceName.textContent.trim() || "[Workspace Name]",
+      pageTitle: pageTitle.textContent.trim() || name,
+      insightsTitle: insightsTitle.textContent.trim() || "Additional Insights",
+    },
+    headerFilters: Array.from(contextFilterRow.querySelectorAll(".header-filter")).map((filter) => ({
+      label: filter.querySelector(".filter-label")?.textContent.trim() || "Filter",
+      value: filter.querySelector(".filter-value")?.textContent.trim() || "Value",
+    })),
+    insightsHidden: insights.classList.contains("hidden"),
+    nextCounter: counter,
+    nextZ: z,
+    mainCards: serializeCards(canvas),
+    insightCards: serializeCards(insightsCanvas),
+  };
+}
+
+function serializeCards(container) {
+  return Array.from(container.querySelectorAll(":scope > .widget")).map((widget) => {
+    syncWidgetFilters(widget);
+    const header = widget.querySelector(".widget-header");
+    return {
+      id: widget.dataset.widgetId,
+      type: widget.dataset.type || "card",
+      className: widget.className,
+      rect: {
+        x: snapToGrid(widget.offsetLeft || parseInt(widget.style.left, 10) || 0),
+        y: snapToGrid(widget.offsetTop || parseInt(widget.style.top, 10) || 0),
+        width: snapToGrid(widget.offsetWidth || parseInt(widget.style.width, 10) || getDefaultWidth(widget.dataset.type)),
+        height: snapToGrid(widget.offsetHeight || parseInt(widget.style.height, 10) || getDefaultHeight(widget.dataset.type)),
+        zIndex: Number(widget.style.zIndex) || 5,
+      },
+      headerHTML: header?.innerHTML || "",
+      headerEditable: header?.getAttribute("contenteditable") || "",
+      contentHTML: widget.querySelector(".widget-content")?.innerHTML || "",
+      metadata: getWidgetMetadata(widget),
+    };
+  });
+}
+
+function restorePage(page) {
+  isRestoring = true;
+  activeDetailsWidget = null;
+  canvas.innerHTML = "";
+  insightsCanvas.innerHTML = "";
+  contextFilterRow.innerHTML = "";
+
+  shellAppName.textContent = page.shell?.appName || "[App Name]";
+  shellPageName.textContent = getPagePathLabel(page);
+  workspaceName.textContent = page.shell?.workspaceName || "[Workspace Name]";
+  pageTitle.textContent = page.shell?.pageTitle || page.name;
+  insightsTitle.textContent = page.shell?.insightsTitle || "Additional Insights";
+  setInsightsHidden(Boolean(page.insightsHidden));
+
+  (page.headerFilters || []).forEach((filter) => addHeaderFilter(filter.label, filter.value));
+  restoreCards(canvas, page.mainCards || [], false);
+  restoreCards(insightsCanvas, page.insightCards || [], true);
+
+  counter = Math.max(page.nextCounter || 1, getHighestWidgetNumber() + 1);
+  z = Math.max(page.nextZ || 5, getHighestZ());
+  isRestoring = false;
+  renderPageSelect();
+}
+
+function restoreCards(container, cards, isInsightsDestination) {
+  cards.forEach((card) => {
+    const widget = template.content.firstElementChild.cloneNode(true);
+    widget.dataset.type = card.type || "card";
+    widget.dataset.widgetId = card.id || createId("widget");
+    widget.className = card.className || "widget sketch-border";
+
+    const header = widget.querySelector(".widget-header");
+    if (header && !card.headerHTML) header.remove();
+    if (header && card.headerHTML) {
+      header.innerHTML = card.headerHTML;
+      if (card.headerEditable) header.setAttribute("contenteditable", card.headerEditable);
+    }
+    widget.querySelector(".widget-content").innerHTML = card.contentHTML || "";
+    setupWidgetMetadata(widget, card.metadata);
+    container.appendChild(widget);
+
+    if (isInsightsDestination) {
+      prepareInsightsWidget(widget);
+    } else if (card.rect) {
+      applyRect(widget, card.rect);
+      widget.style.zIndex = String(card.rect.zIndex || 5);
+    }
+
+    (card.metadata?.filters || []).forEach((filter) => addWidgetFilter(widget, filter));
+    wireWidget(widget, isInsightsDestination);
+  });
+}
+
+function renderPageSelect() {
+  const activeId = project.activePageId;
+  if (pageSelect) pageSelect.innerHTML = "";
+  shellPageMenu.innerHTML = "";
+
+  project.pages.forEach((page) => {
+    if (pageSelect) {
+      const option = document.createElement("option");
+      option.value = page.id;
+      option.textContent = page.name || "Untitled Page";
+      option.selected = page.id === activeId;
+      pageSelect.appendChild(option);
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.role = "menuitem";
+    button.dataset.pageId = page.id;
+    button.className = "shell-page-menu-item";
+    button.setAttribute("aria-current", String(page.id === activeId));
+    button.innerHTML = `
+      <span class="shell-page-menu-name"></span>
+      <span class="shell-page-menu-path"></span>
+    `;
+    button.querySelector(".shell-page-menu-name").textContent = page.name || "Untitled Page";
+    button.querySelector(".shell-page-menu-path").textContent = getPagePathLabel(page);
+    shellPageMenu.appendChild(button);
+  });
+}
+
+function toggleShellPageMenu() {
+  const isOpen = !shellPageMenu.hidden;
+  if (isOpen) {
+    closeShellPageMenu();
+  } else {
+    shellPageMenu.hidden = false;
+    shellPageMenuButton.setAttribute("aria-expanded", "true");
+  }
+}
+
+function closeShellPageMenu() {
+  shellPageMenu.hidden = true;
+  shellPageMenuButton.setAttribute("aria-expanded", "false");
+}
+
+function syncActivePageName() {
+  const page = getActivePage();
+  page.name = getCurrentPageName();
+  renderPageSelect();
+}
+
+function getCurrentPageName() {
+  return pageTitle.textContent.trim() || shellPageName.textContent.trim() || "Untitled Page";
+}
+
+function getPagePathLabel(page) {
+  const pagePath = page.shell?.pagePath?.trim();
+  if (!pagePath || pagePath === DEFAULT_PAGE_PATH) return page.name || "Untitled Page";
+  return pagePath;
+}
+
+function getUniquePageName(baseName) {
+  const names = new Set(project.pages.map((page) => page.name));
+  if (!names.has(baseName)) return baseName;
+  let i = 2;
+  while (names.has(`${baseName} ${i}`)) i += 1;
+  return `${baseName} ${i}`;
+}
+
+function setInsightsHidden(hidden) {
+  insights.classList.toggle("hidden", hidden);
+  pageBody.classList.toggle("insights-hidden", hidden);
+  toggleInsights.setAttribute("aria-pressed", String(!hidden));
+  toggleInsights.setAttribute("aria-label", hidden ? "Expand Additional Insights" : "Collapse Additional Insights");
+  toggleInsights.setAttribute("title", hidden ? "Expand Additional Insights" : "Collapse Additional Insights");
+}
+
+function syncTargetAreaChoices() {
+  targetAreaChoices.forEach((choice) => {
+    choice.checked = choice.value === targetArea.value;
+  });
 }
 
 function findOpenPosition(container, widget, width, height) {
@@ -668,4 +1197,38 @@ function applyRect(el, rect) {
 
 function snapToGrid(value, size = GRID_SIZE) {
   return Math.max(size, Math.round(value / size) * size);
+}
+
+function getHighestWidgetNumber() {
+  return Math.max(
+    0,
+    ...Array.from(document.querySelectorAll(".widget[data-widget-id]")).map((widget) => {
+      const match = widget.dataset.widgetId.match(/(\d+)$/);
+      return match ? Number(match[1]) : 0;
+    })
+  );
+}
+
+function getHighestZ() {
+  return Math.max(
+    5,
+    ...Array.from(document.querySelectorAll(".widget")).map((widget) => Number(widget.style.zIndex) || 5)
+  );
+}
+
+function createId(prefix) {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function slugify(value) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60) || "mockup-project";
+}
+
+function structuredCloneSafe(value) {
+  if (typeof structuredClone === "function") return structuredClone(value);
+  return JSON.parse(JSON.stringify(value));
 }

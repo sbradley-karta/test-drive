@@ -2,7 +2,11 @@
   --ink: #1d1d1d;
   --paper: #f4f4f2;
   --panel: #fafaf9;
-  --builder-bg: #0f172a;
+  --karta-san-felix: #113a2a;
+  --karta-salem: #2a654e;
+  --karta-stone-wall: #979187;
+  --karta-white: #ffffff;
+  --builder-bg: var(--karta-san-felix);
   --builder-card: #f8fafc;
   --mockup-width: 1600px;
   --mockup-height: 900px;
@@ -98,9 +102,11 @@ body {
 .top-nav {
   height: var(--top-nav-height);
   justify-content: space-between;
-  overflow: hidden;
+  overflow: visible;
   font-size: 16px;
   font-weight: 400;
+  position: relative;
+  z-index: 50;
 }
 
 .context-bar {
@@ -120,10 +126,10 @@ body {
 .anaplan-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   align-self: stretch;
-  min-width: 132px;
-  padding: 0 18px 0 4px;
+  min-width: 126px;
+  padding: 0 18px 0 8px;
   border-right: 1px solid rgba(29, 29, 29, 0.28);
   font-weight: 700;
   letter-spacing: 0;
@@ -135,19 +141,19 @@ body {
 .shell-selector::after {
   content: "";
   position: absolute;
-  top: -8px;
+  top: 0;
   right: -15px;
   width: 28px;
-  height: calc(100% + 16px);
+  height: 100%;
   border-right: 1px solid rgba(29, 29, 29, 0.28);
   transform: skewX(-22deg);
   pointer-events: none;
-  background: #fff;
+  background: transparent;
 }
 
 .anaplan-logo-mark {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border: 0;
   background: transparent;
   display: grid;
@@ -159,7 +165,7 @@ body {
 }
 
 .apps-label {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 400;
 }
 
@@ -170,8 +176,8 @@ body {
   background: transparent;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 36px 0 24px;
+  gap: 10px;
+  padding: 0 34px 0 22px;
   white-space: nowrap;
   position: relative;
 }
@@ -186,14 +192,47 @@ body {
   max-width: 840px;
 }
 
+.shell-page-menu-button {
+  min-width: 0;
+  width: 100%;
+  height: calc(100% - 10px);
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 0 0;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.shell-page-menu-button:hover {
+  background: rgba(29, 29, 29, 0.04);
+}
+
+.shell-page-menu-button:focus {
+  outline: none;
+}
+
+.shell-page-menu-button:focus-visible {
+  box-shadow: inset 0 0 0 2px rgba(42, 101, 78, 0.55);
+}
+
 .shell-editable,
 .workspace-selector [contenteditable="true"] {
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-bottom: 1px dashed rgba(29, 29, 29, 0.55);
+  border-bottom: 1px dashed rgba(29, 29, 29, 0.42);
   cursor: text;
+}
+
+.shell-page-selector .shell-editable {
+  cursor: pointer;
 }
 
 .shell-app-selector .shell-editable {
@@ -206,22 +245,80 @@ body {
   max-width: 740px;
 }
 
+.shell-page-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 22px;
+  z-index: 20000;
+  width: min(420px, calc(100vw - 40px));
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid rgba(29, 29, 29, 0.86);
+  border-radius: 4px;
+  background: #fff;
+  padding: 5px;
+  box-shadow: 2px 2px 0 rgba(29, 29, 29, 0.2);
+}
+
+.shell-page-menu[hidden] {
+  display: none;
+}
+
+.shell-page-menu-item {
+  width: 100%;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  display: grid;
+  gap: 3px;
+  padding: 7px 9px;
+  text-align: left;
+  font-family: inherit;
+}
+
+.shell-page-menu-item:hover,
+.shell-page-menu-item:focus-visible {
+  background: rgba(42, 101, 78, 0.1);
+  outline: none;
+}
+
+.shell-page-menu-item[aria-current="true"] {
+  background: rgba(42, 101, 78, 0.16);
+  box-shadow: inset 3px 0 0 var(--karta-salem);
+}
+
+.shell-page-menu-name {
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.shell-page-menu-path {
+  color: #4b5563;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .shell-caret {
-  font-size: 0.9rem;
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;
   transform: translateY(1px);
+  opacity: 0.8;
 }
 
 .workspace-selector {
   height: 100%;
-  min-width: 180px;
-  max-width: 280px;
+  min-width: 168px;
+  max-width: 250px;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   margin-left: auto;
-  padding: 0 16px;
+  padding: 0 12px;
   border: 0;
   background: transparent;
   flex: 0 0 auto;
@@ -237,14 +334,14 @@ body {
 .utility-icons {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 12px;
+  gap: 10px;
+  padding: 0 10px;
   flex: 0 0 auto;
 }
 
 .utility-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border: 0;
   background: transparent;
   display: grid;
@@ -270,8 +367,8 @@ body {
 .search-icon {
   border: 2px solid var(--ink);
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 
 .search-icon::after {
@@ -287,8 +384,8 @@ body {
 .bell-icon {
   border: 2px solid var(--ink);
   border-radius: 9px 9px 4px 4px;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
 }
 
 .bell-icon::after {
@@ -720,8 +817,18 @@ body {
   display: block;
   border: none;
   background: transparent;
-  padding: 0 58px 28px 22px;
+  padding: 0 58px 0 22px;
   min-height: 42px;
+}
+
+.widget.button-widget {
+  min-width: 238px;
+  min-height: 56px;
+}
+
+.widget.text-only-widget {
+  min-width: 476px;
+  min-height: 56px;
 }
 
 .widget.bare-widget::after {
@@ -738,6 +845,17 @@ body {
 
 .widget.bare-widget .details {
   top: 0;
+}
+
+.widget.button-widget .widget-filter-list,
+.widget.button-widget .add-widget-filter,
+.widget.checkbox-widget .widget-filter-list,
+.widget.checkbox-widget .add-widget-filter,
+.widget.text-only-widget .widget-filter-list,
+.widget.text-only-widget .add-widget-filter,
+.widget.logo-widget .widget-filter-list,
+.widget.logo-widget .add-widget-filter {
+  display: none !important;
 }
 
 .widget.field-widget,
@@ -835,10 +953,13 @@ body {
 .mock-action-btn {
   border: 2px solid var(--ink);
   background: #e5edff;
-  padding: 8px 12px;
+  padding: 7px 12px;
   font-family: inherit;
   width: 100%;
   height: 100%;
+  min-height: 42px;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .text-widget {
@@ -849,7 +970,9 @@ body {
   font-size: 1.05rem;
   font-weight: 700;
   background: transparent;
-  overflow: auto;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
 .checkbox-widget-content {
@@ -906,6 +1029,32 @@ body {
   overflow: auto;
 }
 
+.logo-widget {
+  display: block;
+  padding: 24px 44px 34px 24px;
+}
+
+.logo-placeholder-card {
+  width: 100%;
+  height: 100%;
+  min-height: 62px;
+  background: rgba(255, 255, 255, 0.72);
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  text-align: center;
+  font-family: Arial, "Segoe UI", system-ui, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: rgba(29, 29, 29, 0.74);
+}
+
+.logo-placeholder-card span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .builder-pane {
   position: sticky;
   top: 10px;
@@ -915,7 +1064,7 @@ body {
   background: var(--builder-bg);
   border-radius: 10px;
   padding: 12px;
-  color: #e2e8f0;
+  color: var(--karta-white);
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 10px;
@@ -933,11 +1082,11 @@ body {
 }
 
 .builder-toggle {
-  border: 1px solid #f8fafc;
+  border: 1px solid var(--karta-white);
   border-radius: 6px;
   padding: 8px;
-  background: #111827;
-  color: #f8fafc;
+  background: var(--karta-salem);
+  color: var(--karta-white);
   cursor: pointer;
   font-family: inherit;
 }
@@ -957,14 +1106,39 @@ body {
 .builder-card {
   width: 100%;
   overflow-y: auto;
-  background: var(--builder-card);
-  color: #0f172a;
+  background: var(--karta-white);
+  color: var(--karta-san-felix);
   border-radius: 8px;
-  padding: 12px;
-  border: 2px solid #1e293b;
+  padding: 10px;
+  border: 1px solid rgba(151, 145, 135, 0.75);
   display: grid;
   gap: 10px;
   align-content: start;
+}
+
+.builder-brand {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: center;
+  border-bottom: 1px solid rgba(151, 145, 135, 0.5);
+  padding: 4px 2px 10px;
+}
+
+.karta-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  overflow: hidden;
+}
+
+.karta-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .builder-card h3,
@@ -972,9 +1146,40 @@ body {
   margin: 0;
 }
 
+.builder-card h3 {
+  font-size: 0.94rem;
+  line-height: 1.2;
+}
+
+.builder-card p {
+  color: #4b5563;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.builder-section {
+  display: grid;
+  gap: 7px;
+  padding: 10px;
+  border: 1px solid rgba(151, 145, 135, 0.34);
+  border-radius: 7px;
+  background: rgba(250, 250, 249, 0.82);
+}
+
+.builder-section h4 {
+  margin: 0;
+  color: var(--karta-san-felix);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .target-label {
-  font-size: 0.85rem;
+  color: #4b5563;
+  font-size: 0.72rem;
   font-weight: 700;
+  line-height: 1;
 }
 
 .builder-card select,
@@ -982,23 +1187,148 @@ body {
   font-family: inherit;
 }
 
+.builder-card select {
+  width: 100%;
+  border: 1px solid rgba(17, 58, 42, 0.72);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--karta-san-felix);
+  padding: 7px 8px;
+  min-height: 36px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: -1px !important;
+}
+
+.target-segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(17, 58, 42, 0.72);
+  border-radius: 7px;
+  background: #fff;
+}
+
+.target-segmented label {
+  min-width: 0;
+}
+
+.target-segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.target-segmented span {
+  min-height: 30px;
+  border-radius: 5px;
+  display: grid;
+  place-items: center;
+  padding: 6px 7px;
+  color: var(--karta-san-felix);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.target-segmented input:checked + span {
+  background: var(--karta-salem);
+  color: var(--karta-white);
+}
+
+.target-segmented input:focus-visible + span {
+  outline: 2px solid var(--karta-san-felix);
+  outline-offset: 2px;
+}
+
 .controls {
   display: grid;
-  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.controls button[data-widget="logo"] {
+  grid-column: 1 / -1;
+}
+
+.page-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+#save-page,
+#delete-page {
+  grid-column: 1 / -1;
 }
 
 .controls button,
 #clear-canvas,
-#export-pdf {
-  border: 1px solid #0f172a;
+#export-pdf,
+#save-page,
+#new-page,
+#duplicate-page,
+#rename-page,
+#delete-page,
+#export-project,
+#import-project {
+  min-height: 36px;
+  border: 1px solid rgba(17, 58, 42, 0.78);
   border-radius: 6px;
-  padding: 8px;
+  padding: 7px 8px;
   cursor: pointer;
   background: #fff;
+  color: var(--karta-san-felix);
+  font-size: 0.82rem;
+  line-height: 1.15;
+}
+
+.controls button:hover,
+#clear-canvas:hover,
+#export-pdf:hover,
+#save-page:hover,
+#new-page:hover,
+#duplicate-page:hover,
+#rename-page:hover,
+#delete-page:hover,
+#export-project:hover,
+#import-project:hover {
+  background: rgba(42, 101, 78, 0.08);
+}
+
+#save-page,
+#export-project {
+  background: var(--karta-salem);
+  color: var(--karta-white);
+  border-color: var(--karta-salem);
 }
 
 #clear-canvas.secondary {
-  background: #fee2e2;
+  background: #fff;
+  color: #9a3412;
+  border-color: rgba(194, 65, 12, 0.72);
+}
+
+#delete-page.danger {
+  background: #fff7ed;
+  color: #9a3412;
+  border-color: #c2410c;
+}
+
+.output-section {
+  background: rgba(17, 58, 42, 0.04);
 }
 
 .widget-details-modal {
@@ -1054,6 +1384,15 @@ body {
 }
 
 #close-details-modal {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--ink);
+  background: #fff;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+#close-rename-page-modal {
   width: 28px;
   height: 28px;
   border: 1px solid var(--ink);

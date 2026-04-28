@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anaplan Mockup Generator</title>
-    <link rel="stylesheet" href="styles.css?v=20260431" />
+    <link rel="stylesheet" href="styles.css?v=20260501" />
   </head>
   <body>
     <div class="app-shell">
@@ -23,8 +23,11 @@
             </div>
 
             <div class="shell-selector shell-page-selector">
-              <span class="shell-editable" contenteditable="true">[Category Name] / [Page Name]</span>
-              <span class="shell-caret" aria-hidden="true">▾</span>
+              <button id="shell-page-menu-button" class="shell-page-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="shell-page-menu">
+                <span class="shell-editable">[Category Name] / [Page Name]</span>
+                <span class="shell-caret" aria-hidden="true">▾</span>
+              </button>
+              <div id="shell-page-menu" class="shell-page-menu" role="menu" hidden></div>
             </div>
 
             <div class="workspace-selector">
@@ -85,28 +88,67 @@
         </button>
 
         <div id="builder-card" class="builder-card">
-          <h3>Mockup Builder Controls</h3>
-          <p>These controls are for workshop facilitation only (not part of the UX page).</p>
+          <header class="builder-brand">
+            <div class="karta-mark">
+              <img src="Karta%20-%20Logo%20IconArtboard%205%404x.png" alt="Karta Consulting Group" />
+            </div>
+            <div>
+              <h3>Mockup Builder Controls</h3>
+              <p>v0.1.8 local project workspace</p>
+            </div>
+          </header>
 
-          <label class="target-label" for="target-area">Add card to</label>
-          <select id="target-area">
-            <option value="canvas">Main Canvas</option>
-            <option value="insights">Additional Insights</option>
-          </select>
+          <section class="builder-section project-section" aria-label="Page management">
+            <h4>Pages</h4>
+            <div class="page-actions">
+              <button id="save-page" type="button">Save Page</button>
+              <button id="new-page" type="button">New Page</button>
+              <button id="duplicate-page" type="button">Duplicate</button>
+              <button id="rename-page" type="button">Rename</button>
+              <button id="delete-page" class="danger" type="button">Delete</button>
+            </div>
+          </section>
 
-          <div class="controls">
-            <button data-widget="kpi" type="button">+ KPI</button>
-            <button data-widget="grid" type="button">+ Grid</button>
-            <button data-widget="chart" type="button">+ Chart</button>
-            <button data-widget="button" type="button">+ Button</button>
-            <button data-widget="text" type="button">+ Title/Header</button>
-            <button data-widget="checkbox" type="button">+ Checkbox</button>
-            <button data-widget="field" type="button">+ Field</button>
-            <button data-widget="textbox" type="button">+ Text Box</button>
-          </div>
+          <section class="builder-section card-section" aria-label="Card controls">
+            <h4>Cards</h4>
+            <label class="target-label" for="target-area">Add card to</label>
+            <select id="target-area" class="visually-hidden" aria-hidden="true" tabindex="-1">
+              <option value="canvas">Main Canvas</option>
+              <option value="insights">Additional Insights</option>
+            </select>
+            <div class="target-segmented" role="radiogroup" aria-label="Add card to">
+              <label>
+                <input type="radio" name="target-area-choice" value="canvas" checked />
+                <span>Main Canvas</span>
+              </label>
+              <label>
+                <input type="radio" name="target-area-choice" value="insights" />
+                <span>Insights</span>
+              </label>
+            </div>
 
-          <button id="clear-canvas" class="secondary" type="button">Clear All Cards</button>
-          <button id="export-pdf" type="button">Export UX Mockup PDF</button>
+            <div class="controls">
+              <button data-widget="kpi" type="button">+ KPI</button>
+              <button data-widget="grid" type="button">+ Grid</button>
+              <button data-widget="chart" type="button">+ Chart</button>
+              <button data-widget="button" type="button">+ Button</button>
+              <button data-widget="text" type="button">+ Title/Header</button>
+              <button data-widget="checkbox" type="button">+ Checkbox</button>
+              <button data-widget="field" type="button">+ Field</button>
+              <button data-widget="textbox" type="button">+ Text Box</button>
+              <button data-widget="logo" type="button">+ Logo</button>
+            </div>
+
+            <button id="clear-canvas" class="secondary" type="button">Clear All Cards</button>
+          </section>
+
+          <section class="builder-section output-section" aria-label="Export controls">
+            <h4>Outputs</h4>
+            <button id="export-pdf" type="button">Export UX Mockup PDF</button>
+            <button id="export-project" type="button">Export Project JSON</button>
+            <button id="import-project" type="button">Import Project JSON</button>
+            <input id="import-project-file" type="file" accept="application/json,.json" hidden />
+          </section>
         </div>
       </aside>
     </div>
@@ -172,8 +214,25 @@
       </form>
     </dialog>
 
+    <dialog id="rename-page-modal" class="widget-details-modal rename-page-modal">
+      <form method="dialog" class="widget-details-form">
+        <header>
+          <h3>Rename Page</h3>
+          <button id="close-rename-page-modal" type="button" aria-label="Close rename page">×</button>
+        </header>
+
+        <label for="rename-page-input">Page name</label>
+        <input id="rename-page-input" type="text" />
+
+        <div class="modal-actions">
+          <button id="cancel-rename-page" class="secondary" type="button">Cancel</button>
+          <button id="save-rename-page" type="submit">Save Name</button>
+        </div>
+      </form>
+    </dialog>
+
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="app.js?v=20260431"></script>
+    <script src="app.js?v=20260501"></script>
   </body>
 </html>
