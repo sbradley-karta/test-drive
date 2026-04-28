@@ -6,6 +6,7 @@ A lightweight, hand-drawn style mockup tool for client requirement workshops.
 
 - Uses a sketch-like visual style to keep discussion conceptual.
 - Provides a consistent Anaplan-inspired page shell with an app-level shell row, page header row, main canvas, and Additional Insights shelf.
+- Supports an editable Anaplan-style category/page split in the top shell row.
 - Uses a **separate Builder Controls pane** outside the UX page mockup so workshop controls are clearly distinguishable from in-product UI.
 - Uses a fixed **1600 × 900** UX mockup stage so local previews and exported PDFs stay consistent.
 - Provides collapsible, sticky Builder Controls that stay available while preserving the mockup frame.
@@ -92,6 +93,7 @@ v0.1.9 adds a structured CSV handoff that translates saved page and card metadat
 - Adds compact icon buttons for **Export UX PDF**, **Export JSON**, and **Import JSON**.
 - Adds a visible warning when cards extend below the visible UX canvas.
 - Aligns destructive and disclaimer styling with Karta orange.
+- Adds a Karta-styled in-app guide modal from the Builder Controls info icon.
 - Keeps the app static and dependency-free by using native browser CSV generation.
 
 ## Fastest way to view in your browser
@@ -160,17 +162,19 @@ For laptop distribution in v0.1.9, share this static app folder and have each us
 
 1. Keep the Builder Controls pane for facilitator actions only.
 2. Use the top shell page selector to switch between saved pages.
-3. Use Builder Controls to save, create, duplicate, rename, and delete pages.
-4. Use the Cards segmented control to choose Main Canvas or Additional Insights before adding cards.
-5. Hover or focus the second header row and use the small `+` button to add context filters.
-6. Use the shelf icon in the second header row to expand or collapse Additional Insights.
-7. Hover or focus a grid card to reveal row/column editing controls.
-8. Hover or focus full cards to add local filter chips or open card build details.
-9. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
-10. Double-click a checkbox cell to return it to editable text.
-11. Use `Save Page` or rely on browser auto-save before switching pages.
-12. Use `Page Details` to capture page-level handoff context.
-13. Use `Export Build Brief CSV` to hand off structured page/card build notes.
-14. Watch for the visible canvas warning when cards are placed below the currently visible UX page area.
-15. Use `Export JSON` when you need to share editable work.
-16. Use this as alignment artifact, not final UI specification.
+3. Edit the top shell app, category, page, and workspace labels to frame the concept.
+4. Use the Builder Controls info icon when you need the in-app guide.
+5. Use Builder Controls to save, create, duplicate, rename, and delete pages.
+6. Use the Cards segmented control to choose Main Canvas or Additional Insights before adding cards.
+7. Hover or focus the second header row and use the small `+` button to add context filters.
+8. Use the shelf icon in the second header row to expand or collapse Additional Insights.
+9. Hover or focus a grid card to reveal row/column editing controls.
+10. Hover or focus full cards to add local filter chips or open card build details.
+11. Type `x` into a grid cell to turn it into a checkbox when a simple selection marker is needed.
+12. Double-click a checkbox cell to return it to editable text.
+13. Use `Save Page` or rely on browser auto-save before switching pages.
+14. Use `Page Details` to capture page-level handoff context.
+15. Use `Export Build Brief CSV` to hand off structured page/card build notes.
+16. Watch for the visible canvas warning when cards are placed below the currently visible UX page area.
+17. Use `Export JSON` when you need to share editable work.
+18. Use this as alignment artifact, not final UI specification.

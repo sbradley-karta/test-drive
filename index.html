@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Anaplan Mockup Generator</title>
-    <link rel="stylesheet" href="styles.css?v=20260502" />
+    <link rel="stylesheet" href="styles.css?v=20260503" />
   </head>
   <body>
     <div class="app-shell">
@@ -23,8 +23,10 @@
             </div>
 
             <div class="shell-selector shell-page-selector">
+              <span class="shell-category-editable shell-editable" contenteditable="true">[Category]</span>
+              <span class="shell-path-divider" aria-hidden="true">/</span>
               <button id="shell-page-menu-button" class="shell-page-menu-button" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="shell-page-menu">
-                <span class="shell-editable">[Category Name] / [Page Name]</span>
+                <span class="shell-page-editable">[Page Name]</span>
                 <span class="shell-caret" aria-hidden="true">▾</span>
               </button>
               <div id="shell-page-menu" class="shell-page-menu" role="menu" hidden></div>
@@ -99,6 +101,7 @@
               <h3>Mockup Builder Controls</h3>
               <p>v0.1.9 local project workspace</p>
             </div>
+            <button id="open-guide" class="guide-icon-button" type="button" aria-label="Open mockup builder guide" title="Open mockup builder guide">i</button>
           </header>
 
           <section class="builder-section project-section" aria-label="Page management">
@@ -262,6 +265,44 @@
       </form>
     </dialog>
 
+    <dialog id="guide-modal" class="guide-modal">
+      <form method="dialog" class="guide-modal-card">
+        <header class="guide-modal-header">
+          <div>
+            <p>Mockup Builder Guide</p>
+            <h3>How to use the accelerator</h3>
+          </div>
+          <button id="close-guide-modal" type="button" aria-label="Close guide">×</button>
+        </header>
+
+        <section class="guide-modal-body">
+          <article>
+            <h4>Set up the page</h4>
+            <p>Edit the app, category, page, workspace, and global selectors to frame the workshop concept.</p>
+          </article>
+          <article>
+            <h4>Add and edit cards</h4>
+            <p>Choose Main Canvas or Insights, add cards, then drag, resize, and edit text or grid cells directly.</p>
+          </article>
+          <article>
+            <h4>Capture build details</h4>
+            <p>Use Page Details and each card info button to record purpose, source, grain, inputs, outputs, open questions, and notes.</p>
+          </article>
+          <article>
+            <h4>Create handoff outputs</h4>
+            <p>Export UX PDF for playback, Build Brief CSV for delivery handoff, or JSON to share editable projects.</p>
+          </article>
+          <aside class="guide-callout">
+            If the visible canvas warning appears, some Main Canvas cards sit below the current view and require scrolling.
+          </aside>
+        </section>
+
+        <div class="guide-modal-actions">
+          <button id="dismiss-guide-modal" type="button">Close Guide</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog id="rename-page-modal" class="widget-details-modal rename-page-modal">
       <form method="dialog" class="widget-details-form">
         <header>
@@ -281,6 +322,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="app.js?v=20260502"></script>
+    <script src="app.js?v=20260503"></script>
   </body>
 </html>

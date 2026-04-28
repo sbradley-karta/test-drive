@@ -30,6 +30,10 @@ const renamePageInput = document.getElementById("rename-page-input");
 const pageSelect = document.getElementById("page-select");
 const shellPageMenuButton = document.getElementById("shell-page-menu-button");
 const shellPageMenu = document.getElementById("shell-page-menu");
+const guideModal = document.getElementById("guide-modal");
+const openGuideBtn = document.getElementById("open-guide");
+const closeGuideModal = document.getElementById("close-guide-modal");
+const dismissGuideModal = document.getElementById("dismiss-guide-modal");
 const savePageBtn = document.getElementById("save-page");
 const newPageBtn = document.getElementById("new-page");
 const duplicatePageBtn = document.getElementById("duplicate-page");
@@ -41,7 +45,8 @@ const exportProjectBtn = document.getElementById("export-project");
 const importProjectBtn = document.getElementById("import-project");
 const importProjectFile = document.getElementById("import-project-file");
 const shellAppName = document.querySelector(".shell-app-selector .shell-editable");
-const shellPageName = document.querySelector(".shell-page-selector .shell-editable");
+const shellCategoryName = document.querySelector(".shell-category-editable");
+const shellPageName = document.querySelector(".shell-page-editable");
 const workspaceName = document.querySelector(".workspace-selector span:first-child");
 const pageTitle = document.querySelector(".left-context");
 const insightsTitle = document.querySelector(".insights h3");
@@ -113,6 +118,10 @@ closePageDetailsModal.addEventListener("click", closePageDetailsDialog);
 cancelPageDetails.addEventListener("click", closePageDetailsDialog);
 pageDetailsModal.addEventListener("cancel", closePageDetailsDialog);
 savePageDetails.addEventListener("click", savePageDetailsMetadata);
+openGuideBtn.addEventListener("click", openGuideDialog);
+closeGuideModal.addEventListener("click", closeGuideDialog);
+dismissGuideModal.addEventListener("click", closeGuideDialog);
+guideModal.addEventListener("cancel", closeGuideDialog);
 closeRenamePageModal.addEventListener("click", closeRenamePageDialog);
 cancelRenamePage.addEventListener("click", closeRenamePageDialog);
 renamePageModal.addEventListener("cancel", closeRenamePageDialog);
@@ -697,6 +706,22 @@ function closePageDetailsDialog() {
   }
 }
 
+function openGuideDialog() {
+  if (typeof guideModal.showModal === "function") {
+    guideModal.showModal();
+  } else {
+    guideModal.setAttribute("open", "");
+  }
+}
+
+function closeGuideDialog() {
+  if (guideModal.open) {
+    guideModal.close();
+  } else {
+    guideModal.removeAttribute("open");
+  }
+}
+
 function closeRenamePageDialog() {
   if (renamePageModal.open) {
     renamePageModal.close();
@@ -1101,6 +1126,7 @@ function createDefaultPage(name) {
     shell: {
       appName: "[App Name]",
       pagePath: name,
+      categoryName: "[Category]",
       workspaceName: "[Workspace Name]",
       pageTitle: name,
       insightsTitle: "Additional Insights",
@@ -1122,28 +1148,65 @@ function createDefaultPageMetadata() {
   };
 }
 
+function normalizePageShell(pageName, candidateShell) {
+  const baseShell = createDefaultPage(pageName).shell;
+  const parsedPath = parsePagePath(candidateShell.pagePath || "");
+  let categoryName = candidateShell.categoryName || parsedPath.categoryName || baseShell.categoryName;
+  const duplicatedPath = `${pageName} / ${pageName}`;
+  if (categoryName === pageName && (!candidateShell.pagePath || candidateShell.pagePath === pageName || candidateShell.pagePath === duplicatedPath)) {
+    categoryName = baseShell.categoryName;
+  }
+  const pagePath = `${categoryName} / ${pageName}`;
+
+  return {
+    ...baseShell,
+    ...candidateShell,
+    categoryName,
+    pagePath,
+  };
+}
+
+function parsePagePath(pagePath) {
+  if (!pagePath || pagePath === DEFAULT_PAGE_PATH) {
+    return { categoryName: "", pageName: "" };
+  }
+
+  if (!pagePath.includes("/")) {
+    return { categoryName: "", pageName: pagePath.trim() };
+  }
+
+  const [categoryName] = pagePath.split("/").map((part) => part.trim());
+  return {
+    categoryName,
+    pageName: pagePath.split("/").slice(1).join("/").trim(),
+  };
+}
+
 function normalizeProject(candidate) {
   if (!candidate || !Array.isArray(candidate.pages) || candidate.pages.length === 0) {
     throw new Error("Project JSON does not contain pages.");
   }
 
-  const pages = candidate.pages.map((page, index) => ({
-    ...createDefaultPage(page.name || `Page ${index + 1}`),
-    ...page,
-    id: page.id || createId("page"),
-    name: page.name || `Page ${index + 1}`,
-    metadata: {
-      ...createDefaultPageMetadata(),
-      ...(page.metadata || {}),
-    },
-    shell: {
-      ...createDefaultPage(page.name || `Page ${index + 1}`).shell,
-      ...(page.shell || {}),
-    },
-    headerFilters: Array.isArray(page.headerFilters) ? page.headerFilters : [],
-    mainCards: Array.isArray(page.mainCards) ? page.mainCards : [],
-    insightCards: Array.isArray(page.insightCards) ? page.insightCards : [],
-  }));
+  const pages = candidate.pages.map((page, index) => {
+    const name = page.name || `Page ${index + 1}`;
+    const basePage = createDefaultPage(name);
+    const shell = normalizePageShell(name, page.shell || {});
+
+    return {
+      ...basePage,
+      ...page,
+      id: page.id || createId("page"),
+      name,
+      metadata: {
+        ...createDefaultPageMetadata(),
+        ...(page.metadata || {}),
+      },
+      shell,
+      headerFilters: Array.isArray(page.headerFilters) ? page.headerFilters : [],
+      mainCards: Array.isArray(page.mainCards) ? page.mainCards : [],
+      insightCards: Array.isArray(page.insightCards) ? page.insightCards : [],
+    };
+  });
 
   const activePageId = pages.some((page) => page.id === candidate.activePageId) ? candidate.activePageId : pages[0].id;
   return {
@@ -1196,7 +1259,8 @@ function captureCurrentPage() {
     metadata: getPageMetadata(getActivePage()),
     shell: {
       appName: shellAppName.textContent.trim() || "[App Name]",
-      pagePath: shellPageName.textContent.trim() || name,
+      categoryName: shellCategoryName.textContent.trim() || "[Category]",
+      pagePath: getCurrentPagePathLabel(name),
       workspaceName: workspaceName.textContent.trim() || "[Workspace Name]",
       pageTitle: pageTitle.textContent.trim() || name,
       insightsTitle: insightsTitle.textContent.trim() || "Additional Insights",
@@ -1243,8 +1307,12 @@ function restorePage(page) {
   insightsCanvas.innerHTML = "";
   contextFilterRow.innerHTML = "";
 
-  shellAppName.textContent = page.shell?.appName || "[App Name]";
-  shellPageName.textContent = getPagePathLabel(page);
+  const shell = normalizePageShell(page.name || "Untitled Page", page.shell || {});
+  page.shell = shell;
+
+  shellAppName.textContent = shell.appName || "[App Name]";
+  shellCategoryName.textContent = shell.categoryName || "[Category]";
+  shellPageName.textContent = page.name || "Untitled Page";
   workspaceName.textContent = page.shell?.workspaceName || "[Workspace Name]";
   pageTitle.textContent = page.shell?.pageTitle || page.name;
   insightsTitle.textContent = page.shell?.insightsTitle || "Additional Insights";
@@ -1338,6 +1406,7 @@ function closeShellPageMenu() {
 function syncActivePageName() {
   const page = getActivePage();
   page.name = getCurrentPageName();
+  shellPageName.textContent = page.name;
   renderPageSelect();
 }
 
@@ -1346,9 +1415,13 @@ function getCurrentPageName() {
 }
 
 function getPagePathLabel(page) {
-  const pagePath = page.shell?.pagePath?.trim();
-  if (!pagePath || pagePath === DEFAULT_PAGE_PATH) return page.name || "Untitled Page";
-  return pagePath;
+  const categoryName = page.shell?.categoryName?.trim() || parsePagePath(page.shell?.pagePath || "").categoryName || "[Category]";
+  return `${categoryName} / ${page.name || "Untitled Page"}`;
+}
+
+function getCurrentPagePathLabel(pageName = getCurrentPageName()) {
+  const categoryName = shellCategoryName.textContent.trim() || "[Category]";
+  return `${categoryName} / ${pageName || "Untitled Page"}`;
 }
 
 function getUniquePageName(baseName) {
